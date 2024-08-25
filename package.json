@@ -1,0 +1,17 @@
+{
+  "name": "readers-network-social",
+  "version": "1.0.0",
+  "description": "Readers Network is a social media platform for book readers and enthusiasts. Users can create accounts, manage profiles, share posts, and interact with others.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10"
+  }
+}
