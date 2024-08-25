@@ -23,7 +23,7 @@ if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
 }
 
 // Fetch profile user data
-$stmt = $pdo->prepare('SELECT Username,FirstName, LastName, Email, ProfilePicture, Bio, Location, FavoriteGenres, DateOfBirth, JoinDate FROM Users WHERE UserID = ?');
+$stmt = $pdo->prepare('SELECT Username, FirstName, LastName, Email, ProfilePicture, Bio, Location, FavoriteGenres, DateOfBirth, JoinDate FROM Users WHERE UserID = ?');
 $stmt->execute([$profileUserId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -33,12 +33,12 @@ if (!$user) {
 
 // Fetch posts and reviews
 $sql = "
-    (SELECT 'post' AS type, p.PostID AS id, NULL AS BookID, NULL AS Title, NULL AS Author, NULL AS Genre, NULL AS PublicationYear, p.Content, p.Image, p.CreatedAt, u.Username, u.ProfilePicture
+    (SELECT 'post' AS type, p.PostID AS id, NULL AS BookID, NULL AS Title, NULL AS Author, NULL AS Genre, NULL AS PublicationYear, p.Content, p.Image, p.CreatedAt, u.Username,u.FirstName, u.LastName, u.ProfilePicture
     FROM Posts p
     JOIN Users u ON p.UserID = u.UserID
     WHERE p.UserID = ?)
     UNION
-    (SELECT 'review' AS type, r.ReviewID AS id, r.BookID, r.Title, r.Author, r.Genre, r.PublicationYear, r.ReviewText AS Content, r.Image, r.CreatedAt, u.Username, u.ProfilePicture
+    (SELECT 'review' AS type, r.ReviewID AS id, r.BookID, r.Title, r.Author, r.Genre, r.PublicationYear, r.ReviewText AS Content, r.Image, r.CreatedAt,u.Username, u.FirstName, u.LastName, u.ProfilePicture
     FROM Reviews r
     JOIN Users u ON r.UserID = u.UserID
     WHERE r.UserID = ?)
@@ -142,16 +142,16 @@ include '../includes/header.php';
             <div class="flex pb-6 items-center justify-between">
                 <div class="flex">
                     <a class="inline-block mr-4" href="#">
-                        <?php if (!empty($post['ProfilePicture'])): ?>
-                            <img class="rounded-full max-w-none w-12 h-12" src="../uploads/profile-picture/<?php echo htmlspecialchars($post['ProfilePicture']); ?>" alt="Profile Picture" />
-                        <?php else: ?>
-                            <img class="rounded-full max-w-none w-12 h-12" src="../assets/images/default-profile.png" alt="Default Profile Picture" />
-                        <?php endif; ?>
+                    <a class="inline-block mr-4" href="#">
+                    <!-- Ensure the src attribute correctly points to the profile picture path -->
+                    <img class="rounded-full max-w-none w-12 h-12" src="../uploads/profile-pictures/<?php echo htmlspecialchars($post['ProfilePicture']); ?>" alt="Profile Picture" />
+                </a>
                     </a>
                     <div class="flex flex-col">
                         <div>
-                            <a class="inline-block text-lg font-bold dark:text-white" href="#"><?php echo htmlspecialchars($post['Username']); ?></a>
-                        </div>
+                        <a class="inline-block text-lg font-bold dark:text-white" href="#">
+                            <?php echo htmlspecialchars($post['FirstName']); ?> <?php echo htmlspecialchars($post['LastName']); ?>
+                        </a>                        </div>
                         <div class="text-slate-500 dark:text-slate-300">
                             <?php
                             $createdAt = new DateTime($post['CreatedAt']);

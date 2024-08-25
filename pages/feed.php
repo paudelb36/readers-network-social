@@ -159,34 +159,47 @@ foreach ($posts as $post):
                 document.querySelectorAll('[id^="options-menu-"]').forEach(m => m.style.opacity = '0');
             }
         });
-    }); // Example JavaScript for like functionality
-    document.querySelectorAll('.like-btn').forEach(button => {
-        button.addEventListener('click', function(event) {
+    }); 
+    
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.like-btn').forEach(function (button) {
+        button.addEventListener('click', function (event) {
             event.preventDefault();
-            const postId = this.getAttribute('data-post-id');
+            const unifiedPostId = this.getAttribute('data-unified-post-id');
             const postType = this.getAttribute('data-post-type');
-
-            fetch('like_post.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        post_id: postId,
-                        post_type: postType
-                    })
+            const isLiked = this.classList.contains('liked');
+            
+            fetch('like_handler.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    unifiedPostId: unifiedPostId,
+                    postType: postType,
+                    like: !isLiked
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const countElement = this.querySelector('.like-count');
-                        countElement.textContent = data.new_like_count;
-                    } else {
-                        console.error('Failed to like post');
-                    }
-                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the UI based on the response
+                    const likeCountElem = this.querySelector('.like-count');
+                    let likeCount = parseInt(likeCountElem.textContent);
+                    likeCountElem.textContent = isLiked ? likeCount - 1 : likeCount + 1;
+                    this.classList.toggle('liked');
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     });
+});
 </script>
+
+
 <script src="../assets/js/like.js"></script>
 <!-- <script src="../assets/js/main.js"></script> -->

@@ -25,34 +25,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Initialize profile picture filename
     $profilePictureFilename = $user['ProfilePicture'];
 
-    // Handle profile picture upload
+   
+    $response = array('status' => 'error', 'message' => 'An unknown error occurred.');
+    
     if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
         $fileTmpPath = $_FILES['profile_picture']['tmp_name'];
         $fileName = time() . '_' . $_FILES['profile_picture']['name']; // Use a timestamp to avoid filename conflicts
         $fileSize = $_FILES['profile_picture']['size'];
         $fileType = $_FILES['profile_picture']['type'];
-
+    
         // Define allowed file types and size limit
-        $allowedFileTypes = ['image/jpeg', 'image/png', 'image/jpg','image/gif'];
-        $maxFileSize = 3 * 1024 * 1024; // 2 MB
-
+        $allowedFileTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+        $maxFileSize = 5 * 1024 * 1024; // 5 MB
+    
         if (in_array($fileType, $allowedFileTypes) && $fileSize <= $maxFileSize) {
             // Move the uploaded file to the desired directory
             $uploadDir = '../uploads/profile-pictures/';
             $destPath = $uploadDir . $fileName;
-
+    
             if (move_uploaded_file($fileTmpPath, $destPath)) {
                 // Update profile picture path in the database
                 $profilePictureFilename = $fileName;
+                $response['status'] = 'success';
+                $response['message'] = 'Profile picture uploaded successfully.';
             } else {
-                echo "Failed to move uploaded file.";
-                exit();
+                $response['message'] = 'Failed to move uploaded file.';
             }
         } else {
-            echo "Invalid file type or size.";
-            exit();
+            $response['message'] = 'Invalid file type or size.';
         }
+    } else {
+        $response['message'] = 'No file uploaded or upload error.';
     }
+    
+    // Send JSON response
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    
+    
 
     // Update user details
     $stmt = $pdo->prepare('UPDATE Users SET Username = ?, Email = ?, Bio = ?, Location = ?, FavoriteGenres = ?, DateOfBirth = ?, ProfilePicture = ? WHERE UserID = ?');
@@ -62,10 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "Failed to update profile.";
     }
 
-    // Redirect back to profile page
-    header('Location: profile.php');
-    exit();
+    // Redirect to the profile page
+    header("Location: profile.php?user_id=" . $userId);
 }
+// Include the header (optional)
+include '../includes/header.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
