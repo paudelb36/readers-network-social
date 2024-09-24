@@ -4,6 +4,7 @@
 // Include your database connection file
 require_once '../includes/config.php';
 session_start();
+include '../includes/header.php';
 
 $email = $password = '';
 $errors = [];

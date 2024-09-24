@@ -3,6 +3,7 @@
 
 // Include your database connection file
 require_once '../includes/config.php';
+include '../includes/header.php';
 
 // Initialize variables for form data
 $firstName = $lastName = $email = $username = $password = $confirmPassword = '';

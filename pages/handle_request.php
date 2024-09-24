@@ -1,46 +1,40 @@
 <?php
-// handle_request.php
+include '../includes/config.php'; // Include your database configuration
+session_start(); // Start the session
 
-session_start();
-include '../includes/config.php';
-
-// Check if user is logged in
-if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-    echo json_encode(['success' => false, 'message' => 'User not logged in']);
+if (!isset($_SESSION['user_id'])) {
+    // Redirect to login page if user is not logged in
+    header('Location: login.php');
     exit();
 }
 
-// Get data from request
-$data = json_decode(file_get_contents('php://input'), true);
-$userId = $data['userId'];
-$action = $data['action']; // 'accept' or 'reject'
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $requesterId = $_POST['requester_id'];
+    $action = $_POST['action'];
+    $userId = $_SESSION['user_id'];
 
-// Validate action
-if (!in_array($action, ['accept', 'reject'])) {
-    echo json_encode(['success' => false, 'message' => 'Invalid action']);
-    exit();
-}
+    // Prepare the update statement
+    $stmt = $pdo->prepare("UPDATE FriendRequests SET Status = ? WHERE RequesterID = ? AND RequestedID = ?");
 
-try {
-    $pdo->beginTransaction();
+    if ($action == 'accept') {
+        // Update the request status to 'Accepted'
+        $stmt->execute(['Accepted', $requesterId, $userId]);
 
-    if ($action === 'accept') {
-        // Add friend
-        $stmt = $pdo->prepare("INSERT INTO Friends (UserID, FriendID) VALUES (:userId, :friendId), (:friendId, :userId)");
-        $stmt->execute(['userId' => $_SESSION['user_id'], 'friendId' => $userId]);
+        // Add a new friend relationship in both directions
+        $friendStmt = $pdo->prepare("INSERT INTO Friends (UserID, FriendID) VALUES (?, ?), (?, ?)");
+        $friendStmt->execute([$userId, $requesterId, $requesterId, $userId]);
 
-        // Remove friend request
-        $stmt = $pdo->prepare("DELETE FROM FriendRequests WHERE RequesterID = :userId AND RequestedID = :friendId");
-        $stmt->execute(['userId' => $userId, 'friendId' => $_SESSION['user_id']]);
-    } else if ($action === 'reject') {
-        // Remove friend request
-        $stmt = $pdo->prepare("DELETE FROM FriendRequests WHERE RequesterID = :userId AND RequestedID = :friendId");
-        $stmt->execute(['userId' => $userId, 'friendId' => $_SESSION['user_id']]);
+    } elseif ($action == 'reject') {
+        // Update the request status to 'Rejected'
+        $stmt->execute(['Rejected', $requesterId, $userId]);
     }
 
-    $pdo->commit();
-    echo json_encode(['success' => true]);
-} catch (Exception $e) {
-    $pdo->rollBack();
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    // Redirect back to the friend requests page
+    header('Location: view_requests.php');
+    exit();
+} else {
+    // If accessed directly without POST data, redirect to the friend requests page
+    header('Location: view_requests.php');
+    exit();
 }
+?>
