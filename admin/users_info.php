@@ -44,7 +44,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($user['LastName']); ?></td>
                             <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($user['Email']); ?></td>
                             <td class="py-2 px-4 border-b">
-                                
+                                <a href="user_details.php?id=<?php echo htmlspecialchars($user['UserID']); ?>" class="text-blue-500 hover:underline">View</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>

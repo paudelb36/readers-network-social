@@ -1,37 +1,28 @@
 <?php
-// session_start(); // Make sure to start the session
+include '../includes/config.php';
 
+// Ensure the user is logged in
 $loggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'];
 $fullName = ''; // Initialize $fullName
 
-if ($loggedIn) {
-    include '../includes/config.php';
+// Set $unreadCount to 0 by default
+$unreadCount = 0;
 
-    // Fetch the user's details from the database
+if ($loggedIn) {
+    $userId = $_SESSION['user_id'];
+
+    // Fetch the user's details
     $stmt = $pdo->prepare("SELECT FirstName, LastName FROM users WHERE UserID = :userId");
-    $stmt->execute(['userId' => $_SESSION['user_id']]);
+    $stmt->execute(['userId' => $userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
-        // Fetch the user's first and last name if the query was successful
-        $firstName = $user['FirstName'];
-        $lastName = $user['LastName'];
-
-        // Store the full name in the session
-        $_SESSION['full_name'] = $firstName . ' ' . $lastName;
-        $fullName = $_SESSION['full_name'];
+        $fullName = $user['FirstName'] . ' ' . $user['LastName'];
+        $_SESSION['full_name'] = $fullName;
     }
-
-    // Fetch the number of unread notifications
-    $stmt = $pdo->prepare("SELECT COUNT(*) AS unread_count FROM Notifications WHERE RecipientID = :userId AND IsRead = 0");
-    $stmt->execute(['userId' => $_SESSION['user_id']]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $unreadCount = $result['unread_count'];
-} else {
-    $unreadCount = 0; // No unread notifications if the user is not logged in
 }
-?>
 
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -67,14 +58,11 @@ if ($loggedIn) {
                     class="relative text-gray-600 hover:text-gray-900"
                     onclick="return <?php echo $loggedIn ? 'true' : 'showLoginAlert()'; ?>">
                     Notifications
-                    <?php if ($loggedIn && $unreadCount > 0): ?>
-                        <span class="absolute top-0 right-0 inline-block w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center transform translate-x-2 -translate-y-2">
-                            <?= $unreadCount; ?>
-                        </span>
-                    <?php endif; ?>
                 </a>
 
-                <a href="#" class="text-gray-600 hover:text-gray-900">Trendings</a>
+
+
+                <a href="./trending.php" class="text-gray-600 hover:text-gray-900">Trendings</a>
             </div>
 
             <script>
@@ -85,11 +73,15 @@ if ($loggedIn) {
             </script>
 
             <div class="relative">
-                <form class="flex items-center">
-                    <input type="search" placeholder="Search" class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button type="submit" class="ml-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Search</button>
-                </form>
+                <?php if ($loggedIn): ?>
+                    <form class="flex items-center">
+                        <input type="search" placeholder="Search" class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="ml-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Search</button>
+                    </form>
+                <?php endif; ?>
             </div>
+
+
             <!-- Profile or Login Button -->
             <?php if ($loggedIn): ?>
                 <!-- Profile Dropdown -->

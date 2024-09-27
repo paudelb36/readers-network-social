@@ -2,6 +2,25 @@
 require_once '../includes/config.php';
 session_start();
 
+// Updated function to send notifications to friends
+function notifyFriends($pdo, $userId, $reviewId, $bookTitle) {
+    // Get friends of the user
+    $friendsQuery = "SELECT FriendID FROM Friends WHERE UserID = ?";
+    $friendsStmt = $pdo->prepare($friendsQuery);
+    $friendsStmt->execute([$userId]);
+    $friends = $friendsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    // Prepare notification insertion statement
+    $notifyStmt = $pdo->prepare("INSERT INTO Notifications (Content, IsRead, CreatedAt, ActorID, Type, RecipientID) VALUES (?, 0, NOW(), ?, 'review', ?)");
+
+    // Send notification to each friend
+    foreach ($friends as $friendId) {
+        $content = "Your friend has posted a new review for the book '$bookTitle'.";
+        $notifyStmt->execute([$content, $userId, $friendId]);
+    }
+}
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if the user is logged in
     if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
@@ -19,12 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isbn = trim($_POST['book_isbn']);
     $publicationYear = trim($_POST['book_year']);
     $genre = trim($_POST['book_genre']);
-    $rating = trim($_POST['rating']);
     $description = trim($_POST['description']); // Assuming this is passed from the form
     $image = null; // Initialize image variable
 
     // Validate required fields
-    if (empty($reviewText) || empty($bookTitle) || empty($author) || empty($rating)) {
+    if (empty($reviewText) || empty($bookTitle) || empty($author)) {
         $_SESSION['error_message'] = 'Please fill in all required fields.';
         header('Location: create_review.php');
         exit();
@@ -68,15 +86,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Begin transaction
         $pdo->beginTransaction();
 
+        // Check if the book exists
+        $bookExistsQuery = 'SELECT BookID FROM Books WHERE ISBN = :isbn LIMIT 1';
+        $checkStmt = $pdo->prepare($bookExistsQuery);
+        $checkStmt->bindParam(':isbn', $isbn, PDO::PARAM_STR);
+        $checkStmt->execute();
+        $bookId = $checkStmt->fetchColumn();
+
+        // If the book does not exist, insert it
+        if (!$bookId) {
+            $insertBookStmt = $pdo->prepare('INSERT INTO Books (Title, Author, ISBN, PublicationYear, Genre, Image, Description) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $insertBookStmt->execute([$bookTitle, $author, $isbn, $publicationYear, $genre, $image, $description]);
+            $bookId = $pdo->lastInsertId();
+        }
+
         // Insert into the Reviews table
-        $stmt = $pdo->prepare('INSERT INTO Reviews (UserID, ReviewText, Title, Author, ISBN, PublicationYear, Genre, Description, Rating, CreatedAt, Image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)');
-        $stmt->execute([$userId, $reviewText, $bookTitle, $author, $isbn, $publicationYear, $genre, $description, $rating, $image]);
+        $stmt = $pdo->prepare('INSERT INTO Reviews (UserID, BookID, ReviewText, Title, Author, ISBN, PublicationYear, Genre, Description, CreatedAt, Image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)');
+        $stmt->execute([$userId, $bookId, $reviewText, $bookTitle, $author, $isbn, $publicationYear, $genre, $description, $image]);
+        $reviewId = $pdo->lastInsertId();
+
+        // Notify friends about the new review
+        notifyFriends($pdo, $userId, $reviewId, $bookTitle);
 
         // Commit the transaction
         $pdo->commit();
 
         // Redirect to the index page with a success message
-        $_SESSION['success_message'] = 'Review submitted successfully!';
+        $_SESSION['success_message'] = 'Review submitted successfully and friends notified!';
         header('Location: index.php');
         exit();
     } catch (Exception $e) {

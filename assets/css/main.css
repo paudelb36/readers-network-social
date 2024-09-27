@@ -57,3 +57,11 @@ footer {
   max-width: 500px;
   width: 100%;
 }
+/* Additional Tailwind styles for Tom Select */
+.tomselected .genre-item {
+  @apply bg-blue-500 text-white rounded-lg px-2 py-1 mr-2;
+}
+
+.tomselect-dropdown {
+  @apply border border-gray-300 rounded-lg shadow-lg p-2;
+}

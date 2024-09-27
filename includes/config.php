@@ -1,4 +1,5 @@
 <?php
+
 $host = 'localhost';
 $dbname = 'readers_network';
 $username = 'root';

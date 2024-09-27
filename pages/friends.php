@@ -82,6 +82,7 @@ include '../includes/header.php';
             <ul class="space-y-2">
                 <li><a href="all_friends.php" class="text-blue-500 hover:underline">All Friends</a></li>
                 <li><a href="view_requests.php" class="text-blue-500 hover:underline">Friend Requests</a></li>
+                <li><a href="sent_requests.php" class="text-blue-500 hover:underline">Sent Requests</a></li>
             </ul>
         </div>
 

@@ -1,20 +1,93 @@
 <?php
-// session_start(); // Ensure sessions are started
-
+// Include the configuration file (for database connection)
 require_once '../includes/config.php';
 
+// Debugging function
+function debug_log($message)
+{
+    error_log("Debug: " . $message);
+}
+
 // Check if the user is logged in
-if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-    header('Location: login.php'); // Redirect to login if not logged in
+if (!isset($_SESSION['user_id']) || !$_SESSION['logged_in']) {
+    header('Location: login.php');
     exit();
 }
 
 // Get the user ID from session
 $userId = $_SESSION['user_id'];
 
+// Handle report submission
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['report_type'])) {
+    debug_log("Report submission received. Data: " . print_r($_POST, true));
+
+    $reporter_id = $userId;
+    $reported_id = $_POST['reported_id'] ?? null;
+    $report_type = $_POST['report_type'] ?? null;
+    $reason = $_POST['reason'] ?? null;
+
+    debug_log("Reporter ID: $reporter_id");
+
+    // Validate input
+    if (empty($reported_id) || empty($report_type) || empty($reason)) {
+        $_SESSION['error_message'] = "Invalid report data. Please fill in all required fields.";
+    } else {
+        // Handle custom 'Other' reason
+        if ($reason === 'Other') {
+            $reason = $_POST['other_reason'] ?? 'Unspecified';
+        }
+
+        // Initialize variables to store reported user and post IDs
+        $reported_user_id = null;
+        $reported_post_id = null;
+
+        try {
+            // Check if it's a post or user report
+            if ($report_type == 'post') {
+                // Reported post
+                $reported_post_id = $reported_id;
+                $query = $pdo->prepare("SELECT UserID FROM Reviews WHERE ReviewID = ?");
+                $query->execute([$reported_id]);
+                $reported_user_id = $query->fetchColumn();
+
+                if (!$reported_user_id) {
+                    throw new Exception("Invalid post ID provided.");
+                }
+            } else {
+                // Reported user
+                $reported_user_id = $reported_id;
+            }
+
+            // Insert the report into the database
+            $stmt = $pdo->prepare("INSERT INTO Reports (ReporterID, ReportedUserID, ReportedPostID, Reason, Status, CreatedAt) VALUES (?, ?, ?, ?, 'Pending', NOW())");
+            $stmt->execute([$reporter_id, $reported_user_id, $reported_post_id, $reason]);
+
+            // Set success message
+            $_SESSION['success_message'] = "You have successfully reported this $report_type.";
+            debug_log("Report inserted successfully.");
+        } catch (Exception $e) {
+            // Handle exceptions and set error message
+            debug_log("Report insertion failed: " . $e->getMessage());
+            $_SESSION['error_message'] = "An error occurred while submitting your report. Please try again later.";
+        }
+    }
+}
+
+// Check for error or success messages
+if (isset($_SESSION['error_message'])) {
+    $errorMessage = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);  // Clear the session message after it's displayed
+}
+
+if (isset($_SESSION['success_message'])) {
+    $successMessage = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);  // Clear the session message after it's displayed
+}
+
+
 // Query to fetch reviews with the new structure
 $reviewsQuery = "
-    SELECT r.ReviewID, r.UserID, r.BookID, r.Rating, r.ReviewText, r.CreatedAt, 
+    SELECT r.ReviewID, r.UserID, r.BookID, r.ReviewText, r.CreatedAt, 
            r.Title, r.Author, r.ISBN, r.PublicationYear, r.Genre, r.Description, r.Image,
            u.Username, u.ProfilePicture, u.FirstName, u.LastName
     FROM Reviews r
@@ -39,11 +112,31 @@ $commentsStmt = $pdo->prepare($commentsQuery);
 $commentsStmt->execute();
 $comments = $commentsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
+
+    // Display the alert message outside of the reviews loop
+    if (isset($errorMessage)): ?>
+        <script>
+            alert("<?php echo htmlspecialchars($errorMessage); ?>");
+        </script>
+    <?php
+        unset($errorMessage);  // Make sure it's only shown once
+    endif; ?>
+
+    <?php if (isset($successMessage)): ?>
+        <script>
+            alert("<?php echo htmlspecialchars($successMessage); ?>");
+        </script>
+    <?php
+        unset($successMessage);  // Make sure it's only shown once
+    endif;
+
 // Loop through the reviews and display them with likes and comments count
 foreach ($reviews as $review):
     $likeCount = $likes[$review['ReviewID']] ?? 0;
     $commentCount = $comments[$review['ReviewID']] ?? 0;
 ?>
+    
+
 
     <!-- Card -->
     <article class="mb-4 break-inside p-6 rounded-xl bg-white dark:bg-slate-800 flex flex-col bg-clip-border shadow-md">
@@ -74,9 +167,9 @@ foreach ($reviews as $review):
                             </button>
                             <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg hidden" id="options-menu-<?php echo htmlspecialchars($review['ReviewID']); ?>">
                                 <ul class="py-1 text-sm">
-                                    <li><a href="#" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">View</a></li>
-                                    <li><a href="#" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Report Content</a></li>
-                                    <li><a href="#" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Report User</a></li>
+                                    <li><a href="view_review.php?review_id=<?php echo htmlspecialchars($review['ReviewID']); ?>" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">View Details</a></li>
+                                    <li><a href="#" onclick="openReportModal('post', <?php echo htmlspecialchars($review['ReviewID']); ?>)" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Report Content</a></li>
+                                    <li><a href="#" onclick="openReportModal('user', <?php echo htmlspecialchars($review['UserID']); ?>)" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Report User</a></li>
                                     <li><a href="#" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Add to Read Later</a></li>
                                 </ul>
                             </div>
@@ -91,16 +184,51 @@ foreach ($reviews as $review):
                 </div>
             </div>
         </div>
+        <!-- Report Modal -->
+        <div id="report-modal-container" class="fixed inset-0 hidden z-50">
+            <!-- Background Overlay -->
+            <div class="fixed inset-0 bg-black opacity-50"></div>
+
+            <!-- Modal Content -->
+            <div class="flex items-center justify-center h-full">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg w-96 relative z-10">
+                    <h3 class="text-lg font-semibold mb-4">Report <span id="report-type"></span></h3>
+                    <form id="report-form" action="" method="POST">
+                        <input type="hidden" name="reported_id" id="reported-id">
+                        <input type="hidden" name="report_type" id="report-type-input">
+
+                        <div class="mb-4">
+                            <label for="reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason for reporting</label>
+                            <select name="reason" id="reason" class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 rounded-md shadow-sm focus:outline-none" onchange="toggleOtherReason()">
+                                <option value="Spam">Spam</option>
+                                <option value="Hate Speech">Hate Speech</option>
+                                <option value="Harassment">Harassment</option>
+                                <option value="Inappropriate Content">Inappropriate Content</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Other reason input -->
+                        <div id="other-reason-container" class="mb-4 hidden">
+                            <label for="other-reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Please specify your reason</label>
+                            <input type="text" name="other_reason" id="other-reason" class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 rounded-md shadow-sm focus:outline-none" placeholder="Enter your reason here">
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="button" onclick="closeReportModal()" class="px-4 py-2 bg-gray-200 dark:bg-slate-600 rounded-md">Cancel</button>
+                            <button type="submit" class="ml-2 px-4 py-2 bg-red-500 text-white rounded-md">Report</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <script src="../assets/js/report.js"></script>
 
         <!-- Display review details -->
         <div class="mb-4">
-            <!-- Title and Author at the top -->
-            <h3 class="text-xl font-extrabold dark:text-white mb-2">
-                <?php echo htmlspecialchars($review['Title']); ?>
-            </h3>
-            <p class="text-md font-semibold dark:text-slate-200 mb-2">
-                by <?php echo htmlspecialchars($review['Author']); ?>
-            </p>
+
 
             <!-- Flexbox for Image and Details -->
             <div class="flex flex-col md:flex-row items-start md:items-center">
@@ -113,13 +241,18 @@ foreach ($reviews as $review):
 
                 <!-- Book Information on the right side -->
                 <div class="flex-grow">
+                    <!-- Title and Author at the top -->
+                    <h3 class="text-xl font-extrabold dark:text-white mb-2">
+                        <?php echo htmlspecialchars($review['Title']); ?>
+                    </h3>
+                    <p class="text-md font-semibold dark:text-slate-200 mb-2">
+                        by <?php echo htmlspecialchars($review['Author']); ?>
+                    </p>
                     <!-- Genre and Rating -->
                     <p class="text-sm font-semibold dark:text-slate-200 mb-2">
                         Genres: <?php echo htmlspecialchars($review['Genre']); ?>
                     </p>
-                    <p class="text-sm font-bold dark:text-white mb-3">
-                        Rating: <?php echo htmlspecialchars($review['Rating']); ?> / 5
-                    </p>
+
 
                     <!-- Review Text -->
                     <p class="dark:text-slate-200 mb-4 leading-relaxed">
@@ -141,11 +274,13 @@ foreach ($reviews as $review):
         <div class="flex items-center mt-4">
             <!-- Like Button -->
             <button class="like-button flex items-center mr-4" data-review-id="<?php echo htmlspecialchars($review['ReviewID']); ?>">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1 heart-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 <span class="like-count"><?php echo $likeCount; ?></span>
             </button>
+
+
 
             <!-- Comment Button -->
             <button class="comment-button flex items-center" data-review-id="<?php echo htmlspecialchars($review['ReviewID']); ?>">
@@ -171,7 +306,7 @@ foreach ($reviews as $review):
 
 <?php endforeach; ?>
 
-
+<script src="../assets/js/comment.js"></script>
 <script>
     //three dots js code
 
@@ -230,75 +365,19 @@ foreach ($reviews as $review):
                         const likeCount = this.querySelector('.like-count');
                         let currentCount = parseInt(likeCount.textContent);
                         likeCount.textContent = this.classList.contains('liked') ? currentCount + 1 : currentCount - 1;
+
+                        // Toggle heart icon to full red when liked
+                        const heartIcon = this.querySelector('.heart-icon');
+                        if (this.classList.contains('liked')) {
+                            heartIcon.setAttribute('fill', 'red'); // Make the heart fully red
+                            heartIcon.setAttribute('stroke', 'red'); // Change the stroke color to red
+                        } else {
+                            heartIcon.setAttribute('fill', 'none'); // Reset to outline
+                            heartIcon.setAttribute('stroke', 'currentColor'); // Reset to original stroke color
+                        }
                     }
                 })
                 .catch(error => console.error('Error:', error));
         });
     });
-
-    // Comment functionality
-    document.querySelectorAll('.comment-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const reviewId = this.dataset.reviewId;
-            const commentSection = document.getElementById(`comment-section-${reviewId}`);
-            commentSection.classList.toggle('hidden');
-            if (!commentSection.classList.contains('hidden')) {
-                loadComments(reviewId);
-            }
-        });
-    });
-
-    document.querySelectorAll('.comment-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const reviewId = this.dataset.reviewId;
-            const commentInput = this.querySelector('.comment-input');
-            const comment = commentInput.value.trim();
-
-            if (comment) {
-                submitComment(reviewId, comment);
-                commentInput.value = '';
-            }
-        });
-    });
-
-    function loadComments(reviewId) {
-        const commentsList = document.querySelector(`#comment-section-${reviewId} .comments-list`);
-
-        fetch(`../includes/get_comments.php?review_id=${reviewId}`)
-            .then(response => response.json())
-            .then(data => {
-                commentsList.innerHTML = '';
-                data.comments.forEach(comment => {
-                    const commentElement = document.createElement('div');
-                    commentElement.className = 'comment mb-2';
-                    commentElement.innerHTML = `
-                    <strong>${comment.Username}:</strong> ${comment.Content}
-                    <small class="text-gray-500">${comment.CreatedAt}</small>
-                `;
-                    commentsList.appendChild(commentElement);
-                });
-            });
-    }
-
-    function submitComment(reviewId, comment) {
-        fetch('../includes/add_comment.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `review_id=${reviewId}&comment=${encodeURIComponent(comment)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadComments(reviewId);
-                    const commentCount = document.querySelector(`[data-review-id="${reviewId}"] .comment-count`);
-                    commentCount.textContent = parseInt(commentCount.textContent) + 1;
-                }
-            });
-    }
 </script>
-
-<script src="../assets/js/like.js"></script>
-<!-- <script src="../assets/js/main.js"></script> -->

@@ -2,15 +2,12 @@
 // content_filtering.php
 include('../includes/config.php'); 
 
-// Fetch reported posts
-$queryPosts = "SELECT PostID, UserID, ReportReason, ReportDate FROM Reports WHERE ReportType = 'post'";
-$stmtPosts = $pdo->query($queryPosts);
-$reportedPosts = $stmtPosts->fetchAll(PDO::FETCH_ASSOC);
-
-// Fetch reported comments
-$queryComments = "SELECT CommentID, PostID, UserID, ReportReason, ReportDate FROM Reports WHERE ReportType = 'comment'";
-$stmtComments = $pdo->query($queryComments);
-$reportedComments = $stmtComments->fetchAll(PDO::FETCH_ASSOC);
+// Fetch reported reviews
+$query = "SELECT r.ReportID, r.ReportedPostID AS ReportedReviewID, r.Reason, r.Status, r.CreatedAt, rev.Title 
+          FROM Reports r 
+          JOIN Reviews rev ON r.ReportedPostID = rev.ReviewID"; // Assuming ReviewID is the primary key for Reviews
+$stmt = $pdo->query($query);
+$reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -18,9 +15,18 @@ $reportedComments = $stmtComments->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Filtering</title>
+    <title>Reported Reviews</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* Custom styles for smaller font and table */
+        .table-small {
+            font-size: 0.875rem; /* Smaller font size */
+        }
+        .table-small th, .table-small td {
+            padding: 0.5rem; /* Less padding */
+        }
+    </style>
 </head>
 <body>
     <?php include('components/header.php'); ?>
@@ -28,53 +34,46 @@ $reportedComments = $stmtComments->fetchAll(PDO::FETCH_ASSOC);
         <?php include('components/sidebar.php'); ?>
         <main class="flex-1 p-6">
             <div class="container mx-auto">
-                <h2 class="text-2xl font-semibold mb-6">Reported Content</h2>
-                
-                <!-- Reported Posts -->
-                <h3 class="text-xl font-semibold mb-4">Reported Posts</h3>
-                <table class="min-w-full bg-white border border-gray-200 mb-6">
+                <h2 class="text-2xl font-semibold mb-4">Reported Reviews</h2>
+                <table class="min-w-full bg-white border border-gray-200 table-small">
                     <thead>
                         <tr>
-                            <th class="py-2 px-4 border-b">PostID</th>
-                            <th class="py-2 px-4 border-b">UserID</th>
-                            <th class="py-2 px-4 border-b">Report Reason</th>
-                            <th class="py-2 px-4 border-b">Report Date</th>
+                            <th class="border-b">Report ID</th>
+                            <th class="border-b">Reported Review</th>
+                            <th class="border-b">Reason</th>
+                            <th class="border-b">Status</th>
+                            <th class="border-b">Created At</th>
+                            <th class="border-b">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($reportedPosts as $report): ?>
-                        <tr>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($report['PostID']); ?></td>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($report['UserID']); ?></td>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($report['ReportReason']); ?></td>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($report['ReportDate']); ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                
-                <!-- Reported Comments -->
-                <h3 class="text-xl font-semibold mb-4">Reported Comments</h3>
-                <table class="min-w-full bg-white border border-gray-200">
-                    <thead>
-                        <tr>
-                            <th class="py-2 px-4 border-b">CommentID</th>
-                            <th class="py-2 px-4 border-b">PostID</th>
-                            <th class="py-2 px-4 border-b">UserID</th>
-                            <th class="py-2 px-4 border-b">Report Reason</th>
-                            <th class="py-2 px-4 border-b">Report Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($reportedComments as $report): ?>
-                        <tr>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($report['CommentID']); ?></td>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($report['PostID']); ?></td>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($report['UserID']); ?></td>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($report['ReportReason']); ?></td>
-                            <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($report['ReportDate']); ?></td>
-                        </tr>
-                        <?php endforeach; ?>
+                        <?php if ($reports): ?>
+                            <?php foreach ($reports as $report): ?>
+                                <tr>
+                                    <td class="border-b"><?= htmlspecialchars($report['ReportID']) ?></td>
+                                    <td class="border-b"><?= htmlspecialchars($report['Title']) ?></td>
+                                    <td class="border-b"><?= htmlspecialchars($report['Reason']) ?></td>
+                                    <td class="border-b"><?= htmlspecialchars($report['Status']) ?></td>
+                                    <td class="border-b"><?= htmlspecialchars($report['CreatedAt']) ?></td>
+                                    <td class="border-b">
+                                        <a href="view_review.php?id=<?= htmlspecialchars($report['ReportedReviewID']) ?>" class="text-blue-500 hover:underline text-sm">View</a>
+                                        <form action="change_status.php" method="POST" class="inline">
+                                            <input type="hidden" name="report_id" value="<?= htmlspecialchars($report['ReportID']) ?>">
+                                            <select name="status" class="border rounded p-1 text-sm">
+                                                <option value="Pending" <?= $report['Status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                                <option value="Resolved" <?= $report['Status'] == 'Resolved' ? 'selected' : '' ?>>Resolved</option>
+                                                <option value="Rejected" <?= $report['Status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+                                            </select>
+                                            <button type="submit" class="bg-blue-500 text-white rounded px-2 py-1 ml-2 text-sm">Update</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="text-red-500 text-center py-2">No reports found.</td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

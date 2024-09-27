@@ -1,5 +1,5 @@
 <?php
-session_start(); // Start the session
+// session_start(); // Start the session
 include '../includes/config.php'; // Adjust the path based on your file structure
 
 // Check if user is logged in using 'user_id'
@@ -28,7 +28,7 @@ if ($stmtUser->rowCount() === 0) {
 $userInfo = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
 // Fetch user posts/reviews from the reviews table
-$queryReviews = "SELECT Title, ReviewText, Rating, CreatedAt, Image 
+$queryReviews = "SELECT Title, ReviewText, CreatedAt, Image 
                  FROM reviews 
                  WHERE UserID = ?
                  ORDER BY CreatedAt DESC";
@@ -57,7 +57,7 @@ include '../includes/header.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($userInfo['Username']); ?>'s Profile</title>
-    <script src="https://cdn.tailwindcss.com"></script> <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" media="print" onload="this.media='all'">
 </head>
 
 <body class="bg-gray-100">
