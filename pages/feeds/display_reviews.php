@@ -29,6 +29,8 @@ if (empty($reviews)): ?>
         $likeCount = $likes[$review['ReviewID']] ?? 0;
         $commentCount = $comments[$review['ReviewID']] ?? 0;
         $isLiked = in_array($review['ReviewID'], $userLikes);
+        $isCurrentUserPost = ($_SESSION['user_id'] == $review['UserID']);
+
     ?>
         <article class="mb-4 break-inside p-6 rounded-xl bg-white dark:bg-slate-800 flex flex-col bg-clip-border shadow-md">
             <!-- User info and options menu -->
@@ -61,7 +63,12 @@ if (empty($reviews)): ?>
                                     <ul class="py-1 text-sm">
                                         <li><a href="view_review.php?review_id=<?php echo htmlspecialchars($review['ReviewID']); ?>" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">View Details</a></li>
                                         <?php if ($isCurrentUserPost): ?>
-                                            <li><button onclick="openUpdateForm(<?php echo htmlspecialchars($review['ReviewID']); ?>)" class="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-600">Update Post</button></li>
+                                            <li>
+                                                <button onclick="openUpdateModal(<?php echo htmlspecialchars($review['ReviewID']); ?>)" class="block w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                    Edit Review
+                                                </button>
+                                            </li>
+
                                             <li><button onclick="deletePost(<?php echo htmlspecialchars($review['ReviewID']); ?>)" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600">Delete Post</button></li>
                                         <?php else: ?>
                                             <li><a href="#" onclick="openReportModal('post', <?php echo htmlspecialchars($review['ReviewID']); ?>)" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Report Content</a></li>
@@ -107,7 +114,7 @@ if (empty($reviews)): ?>
                         </p>
 
                         <!-- Review Text -->
-                        <p class="dark:text-slate-200 mb-4 leading-relaxed review-text">
+                        <p class="dark:text-slate-200 mb-4 leading-relaxed review-text" id="review-text-<?php echo htmlspecialchars($review['ReviewID']); ?>">
                             <?php echo nl2br(htmlspecialchars($review['ReviewText'])); ?>
                         </p>
 
@@ -157,21 +164,51 @@ if (empty($reviews)): ?>
 endif;
 ?>
 
-<!-- Update Form Modal -->
-<div id="update-form-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+<!-- Edit Review Modal -->
+<div id="edit-review-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Update Review</h3>
-            <form id="update-review-form" class="mt-2">
-                <input type="hidden" id="update-review-id" name="review_id">
-                <textarea id="update-review-text" name="review_text" class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none" rows="4" required></textarea>
-                <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Update
-                </button>
-                <button type="button" onclick="closeUpdateForm()" class="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                    Cancel
-                </button>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Edit Review</h3>
+            <form id="edit-review-form" action="update_review.php" method="POST" class="mt-2">
+                <input type="hidden" id="edit-review-id" name="review_id">
+                <textarea id="edit-review-text" name="review_text" class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none" rows="4" required></textarea>
+                <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Update</button>
+                <button type="button" onclick="closeEditForm()" class="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancel</button>
             </form>
         </div>
     </div>
 </div>
+<script>
+    function openEditForm(reviewID) {
+        // Fetch the review data from the server
+        fetch('get_review.php?review_id=' + reviewID)
+            .then(response => response.json())
+            .then(data => {
+                // Populate the form with the current review data
+                document.getElementById('edit-review-id').value = data.ReviewID;
+                document.getElementById('edit-review-text').value = data.ReviewText;
+                // Open the modal
+                document.getElementById('edit-review-modal').classList.remove('hidden');
+            })
+            .catch(error => console.error('Error fetching review data:', error));
+    }
+
+    function closeEditForm() {
+        document.getElementById('edit-review-modal').classList.add('hidden');
+    }
+    // Show and hide the modal
+    function openUpdateForm(reviewID) {
+        document.getElementById('update-form-modal').classList.remove('hidden');
+        // Use AJAX or Fetch API to populate the modal with review data
+        fetch(`get_review.php?review_id=${reviewID}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('update-review-id').value = data.ReviewID;
+                document.getElementById('update-review-text').value = data.ReviewText;
+            });
+    }
+
+    function closeUpdateForm() {
+        document.getElementById('update-form-modal').classList.add('hidden');
+    }
+</script>

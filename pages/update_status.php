@@ -1,5 +1,5 @@
 <?php
-// update_status.php
+// update_status.php reading list status
 session_start();
 include '../includes/config.php';
 

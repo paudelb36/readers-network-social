@@ -68,48 +68,67 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 });
 
-
-// Function to open the update form
-function openUpdateForm(reviewId) {
-  document.getElementById(`update-modal-${reviewId}`).classList.remove('hidden');
-}
+// New function to open the update form
+window.openUpdateForm = function (reviewId) {
+  fetch(`get_review.php?review_id=${reviewId}`)
+    .then((response) => response.json())
+    .then((data) => {
+      document.getElementById("update-review-id").value = data.ReviewID;
+      document.getElementById("update-review-text").value = data.ReviewText;
+      document.getElementById("update-review-modal").classList.remove("hidden");
+    })
+    .catch((error) => console.error("Error fetching review data:", error));
+};
 
 // Function to close the update form
-function closeUpdateForm(reviewId) {
-  document.getElementById(`update-modal-${reviewId}`).classList.add('hidden');
-}
+window.closeUpdateForm = function () {
+  document.getElementById("update-review-modal").classList.add("hidden");
+};
 
-// Add event listeners for update forms
-document.querySelectorAll('[id^="update-form-"]').forEach(form => {
-  form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const reviewId = this.querySelector('input[name="review_id"]').value;
-      const reviewText = this.querySelector('textarea[name="review_text"]').value;
+// Add event listener for update form submission
+document
+  .getElementById("update-review-form")
+  .addEventListener("submit", function (e) {
+    e.preventDefault();
+    const reviewId = document.getElementById("update-review-id").value;
+    const reviewText = document.getElementById("update-review-text").value;
 
-      fetch('../includes/update_review.php', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: `review_id=${reviewId}&review_text=${encodeURIComponent(reviewText)}`
-      })
-      .then(response => response.json())
-      .then(data => {
-          if (data.success) {
-              // Update the review text in the DOM
-              const reviewElement = document.querySelector(`article[data-review-id="${reviewId}"] .dark:text-slate-200.mb-4.leading-relaxed`);
-              if (reviewElement) {
-                  reviewElement.textContent = reviewText;
-              }
-              closeUpdateForm(reviewId);
-              alert('Review updated successfully');
-          } else {
-              alert('Failed to update review: ' + data.message);
+    fetch("../includes/update_review.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `review_id=${reviewId}&review_text=${encodeURIComponent(
+        reviewText
+      )}`,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          // Update the review text in the DOM
+          const reviewElement = document.querySelector(
+            `#review-content-${reviewId} .review-text`
+          );
+          if (reviewElement) {
+            reviewElement.textContent = reviewText;
           }
+          closeUpdateForm();
+          alert("Review updated successfully");
+        } else {
+          alert("Failed to update review: " + data.message);
+        }
       })
-      .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred while updating the review');
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("An error occurred while updating the review");
       });
+  });
+
+// Add event listeners for edit buttons
+document.querySelectorAll(".edit-post-btn").forEach((button) => {
+  button.addEventListener("click", function (event) {
+    event.preventDefault();
+    const reviewId = this.getAttribute("data-review-id");
+    openUpdateForm(reviewId);
   });
 });

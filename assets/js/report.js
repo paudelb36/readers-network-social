@@ -1,3 +1,4 @@
+//report.js
 // Function to open the report modal
 function openReportModal(reportType, reportedId) {
     document.getElementById('report-modal-container').classList.remove('hidden');

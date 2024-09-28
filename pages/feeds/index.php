@@ -23,6 +23,8 @@ include_once '../includes/header.php';
 <div class="container mx-auto px-4">
     <?php
     include 'report_modal.php';
+    include 'update_modal.php'; // Include the new update modal
+    include '../assets/js/update_review_scripts.php';
     include 'display_reviews.php';
     ?>
 </div>

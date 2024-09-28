@@ -29,7 +29,7 @@ if ($stmtUser->rowCount() === 0) {
 $userInfo = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
 // Fetch user posts/reviews from the reviews table and get genres from the books table
-$queryReviews = "SELECT r.Title, r.ReviewText, r.CreatedAt, r.Image, r.Author, b.Genre 
+$queryReviews = "SELECT r.ReviewID, r.Title, r.ReviewText, r.CreatedAt, r.Image, r.Author, b.Genre 
                  FROM reviews r 
                  JOIN books b ON r.BookID = b.BookID 
                  WHERE r.UserID = ? 
@@ -38,6 +38,7 @@ $stmtReviews = $pdo->prepare($queryReviews);
 $stmtReviews->bindParam(1, $userId, PDO::PARAM_INT);
 $stmtReviews->execute();
 $resultReviews = $stmtReviews->fetchAll(PDO::FETCH_ASSOC);
+
 
 
 // Fetch user's bookshelf counts
@@ -52,6 +53,17 @@ $stmtBookshelfCounts = $pdo->prepare($queryBookshelfCounts);
 $stmtBookshelfCounts->bindParam(1, $userId, PDO::PARAM_INT);
 $stmtBookshelfCounts->execute();
 $bookshelfCounts = $stmtBookshelfCounts->fetch(PDO::FETCH_ASSOC);
+
+// Check friendship status
+$isFriend = false;
+if ($_SESSION['user_id'] != $userId) {
+    $queryFriendship = "SELECT * FROM friends WHERE UserID = ? AND FriendID = ?";
+    $stmtFriendship = $pdo->prepare($queryFriendship);
+    $stmtFriendship->bindParam(1, $_SESSION['user_id'], PDO::PARAM_INT);
+    $stmtFriendship->bindParam(2, $userId, PDO::PARAM_INT);
+    $stmtFriendship->execute();
+    $isFriend = $stmtFriendship->rowCount() > 0;
+}
 
 include '../includes/header.php';
 ?>
@@ -112,6 +124,7 @@ include '../includes/header.php';
             <!-- Left Section: Top Section and About Section (Column 1) -->
             <div class="space-y-6 lg:col-span-2">
                 <!-- Top Section: Profile Picture, Name, Username -->
+                <!-- Top Section: Profile Picture, Name, Username -->
                 <div class="flex items-center space-x-4 bg-white p-6 rounded-lg shadow-lg">
                     <!-- Display Profile Picture -->
                     <?php if (!empty($userInfo['ProfilePicture'])): ?>
@@ -123,12 +136,17 @@ include '../includes/header.php';
                     <div>
                         <h1 class="text-3xl font-bold"><?php echo htmlspecialchars($userInfo['FirstName'] . ' ' . $userInfo['LastName']); ?></h1>
                         <p class="text-gray-600">@<?php echo htmlspecialchars($userInfo['Username']); ?></p>
-                        <!-- Show Edit Profile button only for logged-in user -->
+                        <!-- Show buttons based on friendship status -->
                         <?php if ($_SESSION['user_id'] == $userInfo['UserID']): ?>
                             <a href="edit_profile.php" class="mt-2 inline-block px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Edit Profile</a>
+                        <?php elseif ($isFriend): ?>
+                            <div class="relative inline-block mt-2">
+                                <p class="font-xl cursor-pointer">Friends</p>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
+
 
                 <!-- About Section -->
                 <div class="bg-white p-6 rounded-lg shadow-lg">
@@ -142,9 +160,8 @@ include '../includes/header.php';
             <!-- Middle Section: User Posts/Reviews (Column 2) -->
             <div class="space-y-6 lg:col-span-3">
                 <!-- Adjust the container to exclude the height of the navbar -->
-                <!-- Use `h-[calc(100vh-50px)]` based on the estimated height of the navbar -->
                 <div class="bg-white p-4 rounded-lg shadow-lg h-[calc(100vh-50px)] overflow-y-auto">
-                    <h2 class="text-xl font-semibold mb-4">Posts</h2>
+                    <h2 class="text-xl font-semibold mb-4">Reviews</h2>
                     <?php if (count($resultReviews) > 0): ?>
                         <?php foreach ($resultReviews as $review): ?>
                             <article class="mb-4 p-6 rounded-xl bg-gray-50 shadow-md flex justify-between items-start">
@@ -158,6 +175,15 @@ include '../includes/header.php';
                                     </p>
                                     <p class="mt-2"><?php echo nl2br(htmlspecialchars($review['ReviewText'])); ?></p>
                                     <p class="text-sm text-gray-500 mt-2">Posted on: <?php echo htmlspecialchars((new DateTime($review['CreatedAt']))->format('F j, Y')); ?></p>
+                                    <div class="mt-4">
+                                        <a
+                                            href='view_review.php?review_id=<?php echo htmlspecialchars($review['ReviewID']); ?>'
+                                            class=" inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                                            View
+                                        </a>
+
+
+                                    </div>
                                 </div>
                                 <div class="review-image ml-4">
                                     <?php if (!empty($review['Image'])): ?>
@@ -173,7 +199,10 @@ include '../includes/header.php';
                     <?php else: ?>
                         <p class="text-gray-500">No posts yet.</p>
                     <?php endif; ?>
+
                 </div>
+
+
             </div>
 
 

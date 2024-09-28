@@ -75,13 +75,12 @@ if ($loggedIn) {
             <div class="relative">
                 <?php if ($loggedIn): ?>
                     <form action="search_results.php" method="GET" class="flex items-center">
-                        <input type="search" name="query" placeholder="Search users, books, genres, ISBN" class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <input type="search" name="query" placeholder="Search users, books" class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                         <select name="type" class="ml-2 border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="all">All</option>
                             <option value="users">Users</option>
                             <option value="books">Books</option>
-                            <option value="genres">Genres</option>
-                            <option value="isbn">ISBN</option>
+                        
                         </select>
                         <button type="submit" class="ml-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Search</button>
                     </form>

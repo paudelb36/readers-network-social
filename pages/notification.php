@@ -1,4 +1,5 @@
 <?php
+//notification.php 
 include '../includes/config.php';
 session_start();
 
@@ -56,7 +57,7 @@ $unreadCount = $unreadNotification['unread_count'];
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex justify-between items-center mb-4">
                 <h1 class="text-xl font-semibold">
-                    Notifications 
+                    Notifications
                     <span class="bg-blue-500 text-white rounded-full px-2 py-1 text-sm"><?php echo count($notifications); ?></span>
                 </h1>
                 <a href="./mark_as_read.php" class="text-blue-500 text-sm">Mark all as read</a>
@@ -75,10 +76,10 @@ $unreadCount = $unreadNotification['unread_count'];
                                     <?php
                                     switch ($notification['Type']) {
                                         case 'reaction':
-                                            echo "reacted to your recent post";
+                                            echo "reacted to your review";
                                             break;
                                         case 'comment':
-                                            echo "commented on your picture";
+                                            echo "commented on your review";
                                             break;
                                         case 'friend_request':
                                             echo "<a href='view_requests.php' class='text-black-500 hover:underline'>sent you a friend request</a>";
@@ -91,21 +92,23 @@ $unreadCount = $unreadNotification['unread_count'];
                                 </p>
                                 <p class="text-xs text-gray-500">
                                     <?php
-                                    $time = new DateTime($notification['CreatedAt']);
-                                    $now = new DateTime();
+                                    $time = new DateTime($notification['CreatedAt'], new DateTimeZone('Asia/Kathmandu'));
+                                    $now = new DateTime('now', new DateTimeZone('Asia/Kathmandu'));
                                     $interval = $time->diff($now);
                                     if ($interval->d > 0) {
                                         echo $interval->d . " day" . ($interval->d > 1 ? "s" : "") . " ago";
                                     } elseif ($interval->h > 0) {
                                         echo $interval->h . "h ago";
-                                    } else {
+                                    } elseif ($interval->i > 0) {
                                         echo $interval->i . "m ago";
+                                    } else {
+                                        echo "Just now";
                                     }
                                     ?>
                                 </p>
-                                <?php if ($notification['Type'] == 'comment' && !empty($notification['Content'])): ?>
+                                <!-- <?php if ($notification['Type'] == 'comment' && !empty($notification['Content'])): ?>
                                     <p class="text-sm mt-1 bg-gray-100 p-2 rounded"><?php echo htmlspecialchars($notification['Content']); ?></p>
-                                <?php endif; ?>
+                                <?php endif; ?> -->
                             </div>
                             <form action="delete_notification.php" method="POST">
                                 <input type="hidden" name="notification_id" value="<?php echo $notification['NotificationID']; ?>">
@@ -114,9 +117,7 @@ $unreadCount = $unreadNotification['unread_count'];
                                 </button>
                             </form>
 
-                            <?php if ($notification['Type'] == 'comment'): ?>
-                                <img src="path_to_commented_picture.jpg" alt="Commented Picture" class="w-12 h-12 object-cover rounded">
-                            <?php endif; ?>
+
                         </li>
                     <?php endforeach; ?>
                 <?php endif; ?>

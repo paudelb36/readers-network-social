@@ -102,7 +102,6 @@ if ($loggedIn) {
                             <img id="book_cover_image" src="" alt="Book Cover" class="w-24 h-auto hidden mt-2">
                         </div>
                     </div>
-
                     <div class="flex justify-end space-x-4">
                         <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Submit Review</button>
                         <button type="button" id="closeReviewFormButton" class="px-4 py-2 bg-gray-500 text-white rounded-lg">Close</button>
@@ -127,6 +126,7 @@ if ($loggedIn) {
             });
         });
     </script>
+
     <!-- for the search of book and retreiving book data -->
     <script src="../assets/js/search_book_api.js"></script>
     <!-- remove the data in form after closing -->

@@ -128,7 +128,6 @@ function getImagePath($imageName) {
                                 <p class="text-sm text-gray-500">Genre: <?= htmlspecialchars($result['Genre'] ?? 'Unknown Genre') ?></p>
                                 <p class="text-sm text-gray-500 mb-2">Published: <?= htmlspecialchars($result['PublicationYear'] ?? 'Unknown Year') ?></p>
                                 <p class="text-sm text-gray-700 mb-4 line-clamp-3"><?= nl2br(htmlspecialchars($result['Description'] ?? 'No description available.')) ?></p>
-                                <a href="book_details.php?book_id=<?= $result['BookID'] ?>" class="text-blue-500 hover:underline">View Book Details</a>
                             <?php else: ?>
                                 <!-- User specific content -->
                                 <h2 class="text-xl font-semibold mb-2"><?= htmlspecialchars($result['FirstName'] . ' ' . $result['LastName']) ?></h2>

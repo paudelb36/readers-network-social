@@ -1,7 +1,7 @@
 <?php
+// like_review.php
 require_once '../includes/config.php';
 session_start();
-
 
 header('Content-Type: application/json');
 
@@ -25,6 +25,23 @@ try {
     if ($action === 'like') {
         $stmt = $pdo->prepare("INSERT IGNORE INTO Likes (UserID, ReviewID) VALUES (?, ?)");
         $stmt->execute([$userId, $reviewId]);
+
+        // Get the UserID of the review owner to send the notification
+        $getOwnerQuery = "SELECT UserID FROM Reviews WHERE ReviewID = :reviewId";
+        $ownerStmt = $pdo->prepare($getOwnerQuery);
+        $ownerStmt->execute([':reviewId' => $reviewId]);
+        $ownerId = $ownerStmt->fetchColumn();
+
+        // Insert notification for the like
+        if ($ownerId && $ownerId != $userId) { // Check if the owner is not the liker
+            $notificationQuery = "INSERT INTO Notifications (ActorID, Type, RecipientID) 
+                                   VALUES (:actorId, 'reaction', :recipientId)";
+            $notificationStmt = $pdo->prepare($notificationQuery);
+            $notificationStmt->execute([
+                ':actorId' => $userId,
+                ':recipientId' => $ownerId
+            ]);
+        }
     } else {
         $stmt = $pdo->prepare("DELETE FROM Likes WHERE UserID = ? AND ReviewID = ?");
         $stmt->execute([$userId, $reviewId]);
