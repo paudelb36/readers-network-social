@@ -39,33 +39,51 @@ if (!$review) {
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container mx-auto p-6">
-        <h2 class="text-2xl font-semibold mb-4">Review Details</h2>
-        <div class="bg-white p-4 rounded shadow border border-gray-200">
-            <h3 class="text-xl font-semibold mb-2"><?= htmlspecialchars($review['Title']) ?></h3>
-            <p class="mb-2"><strong>Author:</strong> <?= htmlspecialchars($review['Author']) ?></p>
-            <p class="mb-2"><strong>Genre:</strong> <?= htmlspecialchars($review['Genre']) ?></p>
-            <p class="mb-2"><strong>ISBN:</strong> <?= htmlspecialchars($review['ISBN']) ?></p>
-            <p class="mb-2"><strong>Publication Year:</strong> <?= htmlspecialchars($review['PublicationYear']) ?></p>
-            <p class="mb-4"><?= nl2br(htmlspecialchars($review['ReviewText'])) ?></p>
-            <?php if (!empty($review['Image'])): ?>
-                <img src="../uploads/<?= htmlspecialchars($review['Image']) ?>" alt="Review Image" class="mb-4 w-1/2">
-            <?php endif; ?>
-            <p class="mb-2"><strong>Number of Reports:</strong> <?= htmlspecialchars($review['ReportCount']) ?></p>
-            <p class="mb-2"><strong>Report Reasons:</strong> <?= htmlspecialchars($review['Reasons']) ?></p>
-            <a href="content_filtering.php" class="text-blue-500 hover:underline">Back to Reported Reviews</a>
+<?php include('components/header.php'); ?>
+    <div class="flex">
+        <?php include('components/sidebar.php'); ?>
+            <main class="flex-1 p-6">
+                        <!-- Main Content -->
+        <div class="flex-1 ">
+            <div class="container mx-auto p-6 bg-white rounded shadow">
+                <h2 class="text-3xl font-bold mb-6">Review Details</h2>
+                <a href="content_filtering.php" class="mt-6 inline-block text-blue-500 hover:underline">Back to Reported Reviews</a>
 
-            <!-- Actions: Hide, Unhide, Delete -->
-            <form action="change_review_status.php" method="POST" class="mt-4">
-                <input type="hidden" name="review_id" value="<?= htmlspecialchars($reviewId) ?>">
-                <?php if ($review['Status'] === 'hidden'): ?>
-                    <button type="submit" name="action" value="unhide" class="bg-green-500 text-white rounded px-4 py-2">Unhide</button>
-                <?php else: ?>
-                    <button type="submit" name="action" value="hide" class="bg-yellow-500 text-white rounded px-4 py-2">Hide</button>
-                <?php endif; ?>
-                <button type="submit" name="action" value="delete" class="bg-red-500 text-white rounded px-4 py-2 ml-2">Delete</button>
-            </form>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Review Image -->
+                    <div class="col-span-1 flex justify-center md:justify-start mb-6 md:mb-0">
+                        <?php if (!empty($review['Image'])): ?>
+                            <img src="../uploads/<?= htmlspecialchars($review['Image']) ?>" alt="Review Image" class="w-auto h-auto rounded-md shadow-md">
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Review Info -->
+                    <div class="col-span-2">
+                        <h3 class="text-2xl font-semibold mb-4"><?= htmlspecialchars($review['Title']) ?></h3>
+                        <p class="text-lg mb-2"><strong>Author:</strong> <?= htmlspecialchars($review['Author']) ?></p>
+                        <p class="text-lg mb-2"><strong>Genre:</strong> <?= htmlspecialchars($review['Genre']) ?></p>
+                        <p class="text-lg mb-2"><strong>ISBN:</strong> <?= htmlspecialchars($review['ISBN']) ?></p>
+                        <p class="text-lg mb-2"><strong>Publication Year:</strong> <?= htmlspecialchars($review['PublicationYear']) ?></p>
+                        <p class="text-lg mb-4"><?= nl2br(htmlspecialchars($review['ReviewText'])) ?></p>
+                        <p class="text-lg mb-2"><strong>Number of Reports:</strong> <?= htmlspecialchars($review['ReportCount']) ?></p>
+                        <p class="text-lg mb-4"><strong>Report Reasons:</strong> <?= htmlspecialchars($review['Reasons']) ?></p>
+
+                        <!-- Actions: Hide, Unhide, Delete -->
+                        <form action="change_review_status.php" method="POST" class="flex space-x-4">
+                            <input type="hidden" name="review_id" value="<?= htmlspecialchars($reviewId) ?>">
+                            <?php if ($review['Status'] === 'hidden'): ?>
+                                <button type="submit" name="action" value="unhide" class="bg-green-500 text-white rounded px-4 py-2 shadow hover:bg-green-600">Unhide</button>
+                            <?php else: ?>
+                                <button type="submit" name="action" value="hide" class="bg-yellow-500 text-white rounded px-4 py-2 shadow hover:bg-yellow-600">Hide</button>
+                            <?php endif; ?>
+                            <button type="submit" name="action" value="delete" class="bg-red-500 text-white rounded px-4 py-2 shadow hover:bg-red-600">Delete</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
         </div>
+    </main>
     </div>
 </body>
 </html>

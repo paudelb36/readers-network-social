@@ -14,6 +14,7 @@ function getReviews($pdo)
                u.Username, u.ProfilePicture, u.FirstName, u.LastName
         FROM Reviews r
         JOIN Users u ON r.UserID = u.UserID
+        WHERE r.Status = 'visible'
         ORDER BY r.CreatedAt DESC
     ";
     $stmt = $pdo->prepare($reviewsQuery);

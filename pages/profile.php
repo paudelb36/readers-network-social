@@ -89,7 +89,7 @@ include '../includes/header.php';
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <!-- Left Column: About Section -->
-            <div class="col-span-1 bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+            <div class="col-span-1 bg-white p-6 rounded-lg shadow-lg ">
                 <h2 class="text-2xl font-semibold mb-4 text-blue-600">About Me</h2>
 
                 <p class="mb-2 text-gray-700 leading-relaxed"><?php echo nl2br(htmlspecialchars($userInfo['Bio'])); ?></p>

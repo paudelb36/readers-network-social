@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start(); // Start the session
 include '../includes/config.php'; // Adjust the path based on your file structure
 
@@ -145,3 +146,6 @@ $selectedGenres = explode(',', $user['FavoriteGenres']);
 </body>
 
 </html>
+<?php
+ob_end_flush();
+?>

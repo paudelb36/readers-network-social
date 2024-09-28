@@ -1,5 +1,5 @@
 <?php
-// feed/display_reviews.php
+// display_reviews.php
 
 // Display alert messages
 if (isset($_SESSION['error_message'])): ?>
@@ -18,12 +18,15 @@ if (isset($_SESSION['success_message'])): ?>
     unset($_SESSION['success_message']);
 endif;
 
-// Loop through the reviews and display them
-foreach ($reviews as $review):
-    $likeCount = $likes[$review['ReviewID']] ?? 0;
-    $commentCount = $comments[$review['ReviewID']] ?? 0;
-    $isCurrentUserPost = $review['UserID'] == $_SESSION['user_id'];
-
+// Check if there are any visible reviews
+if (empty($reviews)): ?>
+    <p class="text-center text-gray-500 dark:text-gray-400 mt-4">No reviews available at the moment.</p>
+<?php else:
+    // Loop through the reviews and display them
+    foreach ($reviews as $review):
+        $likeCount = $likes[$review['ReviewID']] ?? 0;
+        $commentCount = $comments[$review['ReviewID']] ?? 0;
+        $isCurrentUserPost = $review['UserID'] == $_SESSION['user_id'];
 ?>
     <article class="mb-4 break-inside p-6 rounded-xl bg-white dark:bg-slate-800 flex flex-col bg-clip-border shadow-md">
         <!-- User info and options menu -->
@@ -59,13 +62,11 @@ foreach ($reviews as $review):
                                         <li><button onclick="openUpdateForm(<?php echo htmlspecialchars($review['ReviewID']); ?>)" class="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-600">Update Post</button></li>
                                         <li><button onclick="deletePost(<?php echo htmlspecialchars($review['ReviewID']); ?>)" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600">Delete Post</button></li>
                                     <?php else: ?>
-                                    <li><a href="#" onclick="openReportModal('post', <?php echo htmlspecialchars($review['ReviewID']); ?>)" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Report Content</a></li>
-                                    <li><a href="#" onclick="openReportModal('user', <?php echo htmlspecialchars($review['UserID']); ?>)" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Report User</a></li>
+                                        <li><a href="#" onclick="openReportModal('post', <?php echo htmlspecialchars($review['ReviewID']); ?>)" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Report Content</a></li>
+                                        <li><a href="#" onclick="openReportModal('user', <?php echo htmlspecialchars($review['UserID']); ?>)" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">Report User</a></li>
                                     <?php endif; ?>
-
                                 </ul>
                             </div>
-
                         </div>
                     </div>
                     <div class="text-slate-300 dark:text-slate-200 mt-1">
@@ -149,7 +150,11 @@ foreach ($reviews as $review):
             </form>
         </div>
     </article>
-<?php endforeach; ?>
+<?php 
+    endforeach;
+endif;
+?>
+
 <!-- Update Form Modal -->
 <div id="update-form-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
