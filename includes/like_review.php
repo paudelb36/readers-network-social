@@ -2,28 +2,43 @@
 require_once '../includes/config.php';
 session_start();
 
+
+header('Content-Type: application/json');
+
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'User not logged in']);
-    exit();
+    exit;
 }
 
 $userId = $_SESSION['user_id'];
-$reviewId = $_POST['review_id'];
+$reviewId = $_POST['review_id'] ?? null;
+$action = $_POST['action'] ?? 'like';
 
-// Check if the user already liked the post
-$stmt = $pdo->prepare('SELECT * FROM likes WHERE UserID = ? AND ReviewID = ?');
-$stmt->execute([$userId, $reviewId]);
-$like = $stmt->fetch();
+if (!$reviewId) {
+    echo json_encode(['success' => false, 'message' => 'Review ID not provided']);
+    exit;
+}
 
-if ($like) {
-    // Unlike the post
-    $stmt = $pdo->prepare('DELETE FROM likes WHERE UserID = ? AND ReviewID = ?');
-    $stmt->execute([$userId, $reviewId]);
-    echo json_encode(['success' => true, 'message' => 'Like removed']);
-} else {
-    // Like the post
-    $stmt = $pdo->prepare('INSERT INTO likes (UserID, ReviewID, CreatedAt) VALUES (?, ?, NOW())');
-    $stmt->execute([$userId, $reviewId]);
-    echo json_encode(['success' => true, 'message' => 'Post liked']);
+try {
+    $pdo->beginTransaction();
+
+    if ($action === 'like') {
+        $stmt = $pdo->prepare("INSERT IGNORE INTO Likes (UserID, ReviewID) VALUES (?, ?)");
+        $stmt->execute([$userId, $reviewId]);
+    } else {
+        $stmt = $pdo->prepare("DELETE FROM Likes WHERE UserID = ? AND ReviewID = ?");
+        $stmt->execute([$userId, $reviewId]);
+    }
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM Likes WHERE ReviewID = ?");
+    $stmt->execute([$reviewId]);
+    $likeCount = $stmt->fetchColumn();
+
+    $pdo->commit();
+
+    echo json_encode(['success' => true, 'likeCount' => $likeCount]);
+} catch (Exception $e) {
+    $pdo->rollBack();
+    echo json_encode(['success' => false, 'message' => 'An error occurred']);
 }
 ?>

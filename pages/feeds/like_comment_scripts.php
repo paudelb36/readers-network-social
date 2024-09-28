@@ -5,34 +5,32 @@
 <script src="../assets/js/comment.js"></script>
 <script src="../assets/js/options_menu.js"></script>
 <script>
-    // Like functionality
     document.querySelectorAll('.like-button').forEach(button => {
         button.addEventListener('click', function() {
             const reviewId = this.dataset.reviewId;
+            const likeCount = this.querySelector('.like-count');
+            const heartIcon = this.querySelector('.heart-icon');
+            const isLiked = this.classList.contains('liked');
+
             fetch('../includes/like_review.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    body: `review_id=${reviewId}`
+                    body: `review_id=${reviewId}&action=${isLiked ? 'unlike' : 'like'}`
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Toggle like button UI
                         this.classList.toggle('liked');
-                        const likeCount = this.querySelector('.like-count');
-                        let currentCount = parseInt(likeCount.textContent);
-                        likeCount.textContent = this.classList.contains('liked') ? currentCount + 1 : currentCount - 1;
+                        likeCount.textContent = data.likeCount;
 
-                        // Toggle heart icon to full red when liked
-                        const heartIcon = this.querySelector('.heart-icon');
                         if (this.classList.contains('liked')) {
-                            heartIcon.setAttribute('fill', 'red'); // Make the heart fully red
-                            heartIcon.setAttribute('stroke', 'red'); // Change the stroke color to red
+                            heartIcon.setAttribute('fill', 'red');
+                            heartIcon.setAttribute('stroke', 'red');
                         } else {
-                            heartIcon.setAttribute('fill', 'none'); // Reset to outline
-                            heartIcon.setAttribute('stroke', 'currentColor'); // Reset to original stroke color
+                            heartIcon.setAttribute('fill', 'none');
+                            heartIcon.setAttribute('stroke', 'currentColor');
                         }
                     }
                 })

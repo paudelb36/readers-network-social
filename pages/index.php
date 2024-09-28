@@ -56,7 +56,7 @@ if ($loggedIn) {
         <?php include '../includes/left_sidebar.php'; ?>
 
         <!-- Feed Section (Centered and Scrollable) -->
-        <div class="w-full md:w-1/2 mx-auto top-16 overflow-y-auto p-4 space-y-4 feed-container">
+        <div class="w-full md:w-1/2 mx-auto overflow-y-auto h-[calc(100vh-4rem)] p-4 space-y-4 feed-container">
             <?php include $loggedIn ? '../includes/feed_content.php' : '../includes/welcome_content.php'; ?>
         </div>
     </div>
@@ -113,7 +113,6 @@ if ($loggedIn) {
     </div>
     <!-- Right Sidebar (Fixed) -->
     <?php include '../includes/right_sidebar.php'; ?>
-
 
     <!-- review form pop up script  -->
     <script>

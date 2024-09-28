@@ -1,5 +1,6 @@
-<!-- // feed/index.php -->
 <?php
+// feed/index.php
+
 require_once '../includes/config.php';
 require_once 'feed_logic.php';
 
@@ -13,6 +14,7 @@ if (!isset($_SESSION['user_id']) || !$_SESSION['logged_in']) {
 $reviews = getReviews($pdo);
 $likes = getLikes($pdo);
 $comments = getComments($pdo);
+$userLikes = getUserLikes($pdo, $_SESSION['user_id']);
 
 // Include the header
 include_once '../includes/header.php';

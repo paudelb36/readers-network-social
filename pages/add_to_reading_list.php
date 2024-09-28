@@ -1,36 +1,50 @@
 <?php
-include '../includes/config.php';
+require_once '../includes/config.php';
+
 session_start();
 
-if (!isset($_SESSION['user_id']) || !isset($_POST['book_id'])) {
-    echo json_encode(['success' => false, 'message' => 'Invalid request']);
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => "You must be logged in to manage your reading list."]);
     exit();
 }
 
-$userID = $_SESSION['user_id'];
-$bookID = $_POST['book_id'];
+$bookId = isset($_POST['book_id']) ? intval($_POST['book_id']) : null;
+$status = isset($_POST['status']) ? $_POST['status'] : null;
+$userId = $_SESSION['user_id'];
 
-try {
-    $pdo->beginTransaction();
+if ($bookId && $status) {
+    try {
+        $pdo->beginTransaction();
 
-    $stmt = $pdo->prepare("SELECT * FROM readinglist WHERE UserID = ? AND BookID = ?");
-    $stmt->execute([$userID, $bookID]);
-    $existingEntry = $stmt->fetch();
+        $checkSql = "SELECT Status FROM readinglist WHERE UserID = :user_id AND BookID = :book_id";
+        $checkStmt = $pdo->prepare($checkSql);
+        $checkStmt->execute([':user_id' => $userId, ':book_id' => $bookId]);
+        $existingStatus = $checkStmt->fetchColumn();
 
-    if ($existingEntry) {
-        $stmt = $pdo->prepare("DELETE FROM readinglist WHERE UserID = ? AND BookID = ?");
-        $stmt->execute([$userID, $bookID]);
-        $message = "Book removed from your reading list";
-    } else {
-        $stmt = $pdo->prepare("INSERT INTO readinglist (UserID, BookID, Status, DateAdded) VALUES (?, ?, 'Want to Read', NOW())");
-        $stmt->execute([$userID, $bookID]);
-        $message = "Book added to your reading list";
+        if ($existingStatus) {
+            if ($existingStatus === $status) {
+                $message = "This book is already in your list.";
+            } else {
+                $updateSql = "UPDATE readinglist SET Status = :status WHERE UserID = :user_id AND BookID = :book_id";
+                $updateStmt = $pdo->prepare($updateSql);
+                $updateStmt->execute([':status' => $status, ':user_id' => $userId, ':book_id' => $bookId]);
+                $message = "Book status updated to '{$status}'.";
+            }
+        } else {
+            $insertSql = "INSERT INTO readinglist (UserID, BookID, Status) VALUES (:user_id, :book_id, :status)";
+            $insertStmt = $pdo->prepare($insertSql);
+            $insertStmt->execute([':user_id' => $userId, ':book_id' => $bookId, ':status' => $status]);
+            $message = "Book added to your list.";
+        }
+
+        $pdo->commit();
+        echo json_encode(['success' => true, 'message' => $message]);
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log("Error managing reading list: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => "Error managing reading list."]);
     }
-
-    $pdo->commit();
-
-    echo json_encode(['success' => true, 'message' => $message]);
-} catch (Exception $e) {
-    $pdo->rollBack();
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} else {
+    echo json_encode(['success' => false, 'message' => "Invalid book or status."]);
 }
+?>

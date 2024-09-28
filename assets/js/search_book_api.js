@@ -156,3 +156,4 @@ reviewForm.addEventListener("submit", function (e) {
   e.preventDefault();
   submitReview();
 });
+

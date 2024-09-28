@@ -38,6 +38,13 @@ function getComments($pdo)
     return $commentsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
 }
 
+function getUserLikes($pdo, $userId) {
+    $query = "SELECT ReviewID FROM Likes WHERE UserID = ?";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute([$userId]);
+    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+}
+
 // Handle report submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['report_type'])) {
     handleReportSubmission($pdo, $_SESSION['user_id'], $_POST);

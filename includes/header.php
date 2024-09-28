@@ -33,6 +33,8 @@ if ($loggedIn) {
     <title>Readers Network</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.1/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="../assets/js/alert.js" defer></script> <!-- Include your alert.js file here -->
+
 </head>
 
 <body>
