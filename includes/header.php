@@ -60,8 +60,6 @@ if ($loggedIn) {
                     Notifications
                 </a>
 
-
-
                 <a href="./trending.php" class="text-gray-600 hover:text-gray-900">Trendings</a>
             </div>
 
@@ -74,20 +72,26 @@ if ($loggedIn) {
 
             <div class="relative">
                 <?php if ($loggedIn): ?>
-                    <form class="flex items-center">
-                        <input type="search" placeholder="Search" class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <form action="search_results.php" method="GET" class="flex items-center">
+                        <input type="search" name="query" placeholder="Search users, books, genres, ISBN" class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <select name="type" class="ml-2 border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="all">All</option>
+                            <option value="users">Users</option>
+                            <option value="books">Books</option>
+                            <option value="genres">Genres</option>
+                            <option value="isbn">ISBN</option>
+                        </select>
                         <button type="submit" class="ml-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Search</button>
                     </form>
                 <?php endif; ?>
             </div>
-
 
             <!-- Profile or Login Button -->
             <?php if ($loggedIn): ?>
                 <!-- Profile Dropdown -->
                 <div class="relative" id="profileDropdown">
                     <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900" id="profileButton">
-                        <span><?= htmlspecialchars($fullName); ?></span> <!-- Display the full name -->
+                        <span><?= htmlspecialchars($fullName); ?></span>
                         <svg class="profile-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -102,7 +106,7 @@ if ($loggedIn) {
                 </div>
             <?php else: ?>
                 <!-- Login Button -->
-                <!-- <a href="./login.php" class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Login</a> -->
+                <a href="./login.php" class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Login</a>
             <?php endif; ?>
         </div>
     </nav>

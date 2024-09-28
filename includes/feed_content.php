@@ -7,4 +7,4 @@
     </div>
 </div>
 <!-- Include the feed -->
-<?php include 'feed.php'; ?>
+<?php include '../pages/feeds/index.php'; ?>

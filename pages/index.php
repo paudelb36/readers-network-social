@@ -19,15 +19,11 @@ include '../includes/header.php';
 $posts = [];
 if ($loggedIn) {
     try {
-        // Fetch posts and reviews
-        $sql = "SELECT posts.PostID, posts.UserID, posts.Content, posts.CreatedAt, posts.Image AS PostImage,
-                   reviews.ReviewID, reviews.ReviewText, reviews.Title AS ReviewTitle,
-                   reviews.Author AS ReviewAuthor, reviews.ISBN AS ReviewISBN, reviews.PublicationYear AS ReviewYear,
-                   reviews.Genre AS ReviewGenre, reviews.Description AS ReviewDescription, reviews.Image AS ReviewImage
-            FROM posts
-            LEFT JOIN reviews ON posts.PostID = reviews.PostID
-            ORDER BY posts.CreatedAt DESC";
-
+        // Fetch reviews 
+        $sql = "SELECT ReviewID, UserID, ReviewText, Title AS ReviewTitle, Author AS ReviewAuthor, ISBN AS ReviewISBN, 
+                PublicationYear AS ReviewYear, Genre AS ReviewGenre, Description AS ReviewDescription, Image AS ReviewImage, CreatedAt
+                FROM reviews
+                ORDER BY CreatedAt DESC";
         $stmt = $pdo->query($sql);
         $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {

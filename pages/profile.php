@@ -1,12 +1,13 @@
 <?php
-// session_start(); // Start the session
+session_start(); // Start the session
 include '../includes/config.php'; // Adjust the path based on your file structure
 
 // Check if user is logged in using 'user_id'
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header('Location: login.php'); // Redirect to login if not logged in
     exit();
 }
+
 
 // Get the user_id from the URL parameter or default to logged-in user
 $userId = isset($_GET['user_id']) ? intval($_GET['user_id']) : $_SESSION['user_id'];
