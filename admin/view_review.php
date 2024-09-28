@@ -12,8 +12,14 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $reviewId = $_GET['id'];
 
-// Fetch review details
-$query = "SELECT * FROM Reviews WHERE ReviewID = ?";
+// Fetch review details along with the count of reports
+$query = "
+    SELECT rev.*, COUNT(rep.ReportID) AS ReportCount, GROUP_CONCAT(rep.Reason SEPARATOR ', ') AS Reasons
+    FROM Reviews rev
+    LEFT JOIN Reports rep ON rev.ReviewID = rep.ReportedPostID
+    WHERE rev.ReviewID = ?
+    GROUP BY rev.ReviewID
+";
 $stmt = $pdo->prepare($query);
 $stmt->execute([$reviewId]);
 $review = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -42,7 +48,23 @@ if (!$review) {
             <p class="mb-2"><strong>ISBN:</strong> <?= htmlspecialchars($review['ISBN']) ?></p>
             <p class="mb-2"><strong>Publication Year:</strong> <?= htmlspecialchars($review['PublicationYear']) ?></p>
             <p class="mb-4"><?= nl2br(htmlspecialchars($review['ReviewText'])) ?></p>
+            <?php if (!empty($review['Image'])): ?>
+                <img src="../uploads/<?= htmlspecialchars($review['Image']) ?>" alt="Review Image" class="mb-4 w-1/2">
+            <?php endif; ?>
+            <p class="mb-2"><strong>Number of Reports:</strong> <?= htmlspecialchars($review['ReportCount']) ?></p>
+            <p class="mb-2"><strong>Report Reasons:</strong> <?= htmlspecialchars($review['Reasons']) ?></p>
             <a href="content_filtering.php" class="text-blue-500 hover:underline">Back to Reported Reviews</a>
+
+            <!-- Actions: Hide, Unhide, Delete -->
+            <form action="change_review_status.php" method="POST" class="mt-4">
+                <input type="hidden" name="review_id" value="<?= htmlspecialchars($reviewId) ?>">
+                <?php if ($review['Status'] === 'hidden'): ?>
+                    <button type="submit" name="action" value="unhide" class="bg-green-500 text-white rounded px-4 py-2">Unhide</button>
+                <?php else: ?>
+                    <button type="submit" name="action" value="hide" class="bg-yellow-500 text-white rounded px-4 py-2">Hide</button>
+                <?php endif; ?>
+                <button type="submit" name="action" value="delete" class="bg-red-500 text-white rounded px-4 py-2 ml-2">Delete</button>
+            </form>
         </div>
     </div>
 </body>
