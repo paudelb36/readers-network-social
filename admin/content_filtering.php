@@ -1,9 +1,12 @@
 <?php
 // content_filtering.php
-include('../includes/config.php'); 
+include('../includes/config.php');
+
+// Set the time zone to Kathmandu
+date_default_timezone_set('Asia/Kathmandu');
 
 // Fetch reported reviews
-$query = "SELECT r.ReportID, r.ReportedPostID AS ReportedReviewID, r.Reason, r.Status, r.CreatedAt, rev.Title 
+$query = "SELECT r.ReportID, r.ReportedPostID AS ReportedReviewID, r.Reason, r.Status, r.CreatedAt, rev.Title, rev.ReviewText, rev.Author, rev.Genre, rev.ISBN, rev.PublicationYear, rev.Image 
           FROM Reports r 
           JOIN Reviews rev ON r.ReportedPostID = rev.ReviewID"; // Assuming ReviewID is the primary key for Reviews
 $stmt = $pdo->query($query);
@@ -43,7 +46,7 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <th class="border-b">Reason</th>
                             <th class="border-b">Status</th>
                             <th class="border-b">Created At</th>
-                            <th class="border-b">Action</th>
+                            <th class="border-b">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,14 +60,11 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td class="border-b"><?= htmlspecialchars($report['CreatedAt']) ?></td>
                                     <td class="border-b">
                                         <a href="view_review.php?id=<?= htmlspecialchars($report['ReportedReviewID']) ?>" class="text-blue-500 hover:underline text-sm">View</a>
-                                        <form action="change_status.php" method="POST" class="inline">
-                                            <input type="hidden" name="report_id" value="<?= htmlspecialchars($report['ReportID']) ?>">
-                                            <select name="status" class="border rounded p-1 text-sm">
-                                                <option value="Pending" <?= $report['Status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                                <option value="Resolved" <?= $report['Status'] == 'Resolved' ? 'selected' : '' ?>>Resolved</option>
-                                                <option value="Rejected" <?= $report['Status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
-                                            </select>
-                                            <button type="submit" class="bg-blue-500 text-white rounded px-2 py-1 ml-2 text-sm">Update</button>
+                                        <form action="change_review_status.php" method="POST" class="inline">
+                                            <input type="hidden" name="review_id" value="<?= htmlspecialchars($report['ReportedReviewID']) ?>">
+                                            <button type="submit" name="action" value="hide" class="bg-yellow-500 text-white rounded px-2 py-1 ml-2 text-sm">Hide</button>
+                                            <button type="submit" name="action" value="unhide" class="bg-green-500 text-white rounded px-2 py-1 ml-2 text-sm">Unhide</button>
+                                            <button type="submit" name="action" value="delete" class="bg-red-500 text-white rounded px-2 py-1 ml-2 text-sm">Delete</button>
                                         </form>
                                     </td>
                                 </tr>

@@ -26,14 +26,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['PasswordHash'])) {
-            // Set session variables
-            $_SESSION['user_id'] = $user['UserID'];
-            $_SESSION['username'] = $user['Username'];
-            $_SESSION['logged_in'] = true;
+            if ($user['IsBanned']) {
+                $errors[] = 'Your account has been banned. Please contact the administrator.';
+            } elseif ($user['IsSuspended']) {
+                $now = new DateTime();
+                $suspensionEnd = new DateTime($user['SuspensionEndDate']);
+                if ($now < $suspensionEnd) {
+                    $errors[] = 'Your account is suspended until ' . $suspensionEnd->format('Y-m-d H:i:s') . '. Please try again later.';
+                } else {
+                    // Suspension period has ended, update user status
+                    $updateStmt = $pdo->prepare('UPDATE Users SET IsSuspended = 0, SuspensionEndDate = NULL WHERE UserID = ?');
+                    $updateStmt->execute([$user['UserID']]);
 
-            // Redirect to index.php
-            header('Location: ./index.php');
-            exit();
+                    // Log the user in
+                    $_SESSION['user_id'] = $user['UserID'];
+                    $_SESSION['username'] = $user['Username'];
+                    $_SESSION['logged_in'] = true;
+                    header('Location: ./index.php');
+                    exit();
+                }
+            } else {
+                // User is active, log them in
+                $_SESSION['user_id'] = $user['UserID'];
+                $_SESSION['username'] = $user['Username'];
+                $_SESSION['logged_in'] = true;
+                header('Location: ./index.php');
+                exit();
+            }
         } else {
             $errors[] = 'Invalid email or password.';
         }
@@ -43,12 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="../assets/css/styles.css"> <!-- Make sure the path is correct -->
 </head>
+
 <body>
     <div class="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:py-24">
         <div class="relative py-3 sm:max-w-xl sm:mx-auto">
@@ -56,8 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
                 <div class="max-w-md mx-auto">
                     <h1 class="text-2xl font-semibold text-center mb-6">Login</h1>
-                    
-                    <!-- Display errors -->
+
                     <?php if (!empty($errors)): ?>
                         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                             <strong class="font-bold">Error:</strong>
@@ -78,12 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 type="email"
                                 class="peer placeholder-transparent h-12 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600"
                                 placeholder="Email Address"
-                                value="<?php echo htmlspecialchars($email); ?>"
-                            />
+                                value="<?php echo htmlspecialchars($email); ?>" />
                             <label
                                 htmlFor="email"
-                                class="absolute left-0 top-0 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
-                            >
+                                class="absolute left-0 top-0 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">
                                 Email Address
                             </label>
                         </div>
@@ -94,12 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 name="password"
                                 type="password"
                                 class="peer placeholder-transparent h-12 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600"
-                                placeholder="Password"
-                            />
+                                placeholder="Password" />
                             <label
                                 htmlFor="password"
-                                class="absolute left-0 top-0 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
-                            >
+                                class="absolute left-0 top-0 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">
                                 Password
                             </label>
                         </div>
@@ -116,4 +132,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </body>
+
 </html>
