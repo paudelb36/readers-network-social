@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 29, 2024 at 03:42 AM
+-- Generation Time: Sep 29, 2024 at 07:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -85,7 +85,8 @@ INSERT INTO `books` (`BookID`, `Title`, `Author`, `ISBN`, `PublicationYear`, `Ge
 (15, 'Harry Potter and the Order of the Phoenix', 'J. K. Rowling', '9781408855935', 2014, 'Fiction', '../uploads/downloads/66f4edcae8448-Harry_Potter_and_the_Order_of_the_Phoenix.jpg', '', 0.00, 0),
 (16, 'Harry Potter and the Prisoner of Azkaban', 'J. K. Rowling', '9781408855676', 2014, 'Juvenile Fiction', '../uploads/downloads/66f4f1b1137a8-Harry_Potter_and_the_Prisoner_of_Azkaban.jpg', '', 3.00, 0),
 (17, 'The Boy in the Striped Pajamas (Deluxe Illustrated Edition)', 'John Boyne', '9781524766535', 2017, 'Young Adult Fiction', '../uploads/downloads/66f4f39eef666-The_Boy_in_the_Striped_Pajamas__Deluxe_Illustrated_Edition_.jpg', '', 0.00, 0),
-(18, '20th century boys', 'Naoki Urasawa', '3899211553', 2002, 'Comics & Graphic Novels', '../uploads/downloads/66f6b9175a9ca-20th_century_boys.jpg', '', 0.00, 0);
+(18, '20th century boys', 'Naoki Urasawa', '3899211553', 2002, 'Comics & Graphic Novels', '../uploads/downloads/66f6b9175a9ca-20th_century_boys.jpg', '', 0.00, 0),
+(19, 'Pep Guardiola', 'Miquel Ãngel Violan', '9781782550297', 2014, 'Sports & Recreation', '../uploads/downloads/66f8e0ea50110-Pep_Guardiola.jpg', NULL, 0.00, 0);
 
 -- --------------------------------------------------------
 
@@ -238,7 +239,8 @@ INSERT INTO `likes` (`LikeID`, `UserID`, `CreatedAt`, `ReviewID`) VALUES
 (175, 3, '2024-09-28 22:42:20', 6),
 (176, 3, '2024-09-28 22:42:21', 5),
 (177, 3, '2024-09-28 22:42:22', 4),
-(178, 3, '2024-09-29 02:35:16', 21);
+(178, 3, '2024-09-29 02:35:16', 21),
+(179, 3, '2024-09-29 10:54:12', 24);
 
 -- --------------------------------------------------------
 
@@ -273,7 +275,11 @@ INSERT INTO `notifications` (`NotificationID`, `Content`, `IsRead`, `CreatedAt`,
 (18, NULL, 0, '2024-09-28 22:42:15', 3, 'reaction', 7),
 (19, NULL, 0, '2024-09-28 22:42:19', 3, 'reaction', 6),
 (20, NULL, 0, '2024-09-28 22:42:20', 3, 'reaction', 9),
-(21, NULL, 0, '2024-09-28 22:42:21', 3, 'reaction', 7);
+(21, NULL, 0, '2024-09-28 22:42:21', 3, 'reaction', 7),
+(22, 'Your friend has posted a new review for the book \'Pep Guardiola\'.', 0, '2024-09-29 10:53:58', 3, '', 6),
+(23, 'Your friend has posted a new review for the book \'Pep Guardiola\'.', 0, '2024-09-29 10:53:58', 3, '', 7),
+(24, 'Your friend has posted a new review for the book \'Pep Guardiola\'.', 0, '2024-09-29 10:53:58', 3, '', 9),
+(25, 'Your friend has posted a new review for the book \'Pep Guardiola\'.', 0, '2024-09-29 10:53:58', 3, '', 10);
 
 -- --------------------------------------------------------
 
@@ -405,7 +411,7 @@ CREATE TABLE `reviews` (
   `ISBN` varchar(20) NOT NULL,
   `PublicationYear` int(11) NOT NULL,
   `Genre` varchar(50) NOT NULL,
-  `Description` text DEFAULT NULL,
+  `Description` text NOT NULL,
   `Image` varchar(255) DEFAULT NULL,
   `Status` enum('visible','hidden') DEFAULT 'visible'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
@@ -423,9 +429,10 @@ INSERT INTO `reviews` (`ReviewID`, `UserID`, `BookID`, `ReviewText`, `CreatedAt`
 (15, 9, 10, 'dgsdafdsf', '2024-09-23 11:22:57', 'Harry Potter and the Deathly Hallows', 'J. K. Rowling', 'UOM:39076002651854', 2007, 'Juvenile Fiction', '', '../uploads/downloads/66f0feb54a5ad-Harry_Potter_and_the_Deathly_Hallows.jpg', 'visible'),
 (17, 3, 12, 'Great book, good read.', '2024-09-24 11:44:26', 'Muna-Madan (à¤®à¥à¤¨à¤¾-à¤®à¤¦à¤¨)', 'Laxmi Prasad Devkota', '9937942004', 2020, 'Fiction', '', '../uploads/downloads/66f2553ddf85a-Muna-Madan______________-__________.jpg', 'visible'),
 (18, 7, 13, 'Great manga', '2024-09-25 00:28:23', 'One piece', 'Eiichiro Oda', '8822603605', 2016, 'Comics & Graphic Novels', '', '../uploads/downloads/66f3084a08f95-One_piece.jpg', 'visible'),
-(19, 6, 14, 'Nice', '2024-09-25 11:31:54', 'Harry Potter and the Chamber of Secrets', 'J. K. Rowling', '1551922444', 2012, 'Juvenile Fiction', NULL, '../uploads/reviews/66f3a3cee0a3a-1680341041-430x430.png', 'visible'),
+(19, 6, 14, 'Nice', '2024-09-25 11:31:54', 'Harry Potter and the Chamber of Secrets', 'J. K. Rowling', '1551922444', 2012, 'Juvenile Fiction', '', '../uploads/reviews/66f3a3cee0a3a-1680341041-430x430.png', 'visible'),
 (20, 3, 15, 'great book', '2024-09-26 10:59:51', 'Harry Potter and the Order of the Phoenix', 'J. K. Rowling', '9781408855935', 2014, 'Fiction', '', '../uploads/downloads/66f4edcae8448-Harry_Potter_and_the_Order_of_the_Phoenix.jpg', 'visible'),
-(21, 3, 16, 'nice', '2024-09-26 11:16:29', 'Harry Potter and the Prisoner of Azkaban', 'J. K. Rowling', '9781408855676', 2014, 'Juvenile Fiction', '', '../uploads/downloads/66f4f1b1137a8-Harry_Potter_and_the_Prisoner_of_Azkaban.jpg', 'visible');
+(21, 3, 16, 'nice', '2024-09-26 11:16:29', 'Harry Potter and the Prisoner of Azkaban', 'J. K. Rowling', '9781408855676', 2014, 'Juvenile Fiction', '', '../uploads/downloads/66f4f1b1137a8-Harry_Potter_and_the_Prisoner_of_Azkaban.jpg', 'visible'),
+(24, 3, 19, 'gsdjkf', '2024-09-29 10:53:58', 'Pep Guardiola', 'Miquel Ãngel Violan', '9781782550297', 2014, 'Sports & Recreation', '', '../uploads/downloads/66f8e0ea50110-Pep_Guardiola.jpg', 'visible');
 
 -- --------------------------------------------------------
 
@@ -594,7 +601,7 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `books`
 --
 ALTER TABLE `books`
-  MODIFY `BookID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `BookID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `comments`
@@ -612,13 +619,13 @@ ALTER TABLE `commentvotes`
 -- AUTO_INCREMENT for table `likes`
 --
 ALTER TABLE `likes`
-  MODIFY `LikeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=179;
+  MODIFY `LikeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=180;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `NotificationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `NotificationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `opinions`
@@ -648,7 +655,7 @@ ALTER TABLE `reports`
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `ReviewID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `ReviewID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `users`
