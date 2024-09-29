@@ -62,7 +62,7 @@ if ($loggedIn) {
                     Notifications
                 </a>
 
-                <a href="./trending.php" class="text-gray-600 hover:text-gray-900">Trendings</a>
+                <a href="./trending.php" class="text-gray-600 hover:text-gray-900">Find Books</a>
             </div>
 
             <script>
@@ -100,7 +100,7 @@ if ($loggedIn) {
                     </button>
                     <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg hidden" id="dropdownContent">
                         <a href="./profile.php?user_id=<?php echo $_SESSION['user_id']; ?>" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">Profile</a>
-                        <a href="#" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">Settings</a>
+                        <a href="../includes/settings.php" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">Settings</a>
                         <hr class="my-1 border-gray-200">
                         <a href="./logout.php" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">Logout</a>
                     </div>
