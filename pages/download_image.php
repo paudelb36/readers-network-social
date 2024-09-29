@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $title = preg_replace('/[^a-zA-Z0-9_-]/', '_', $data['title']); // Sanitize title for filename
     $uploadDir = '../uploads/downloads/';
-    $imageName = uniqid() . '-' . $title . '.' . pathinfo($imageUrl, PATHINFO_EXTENSION); // Keep the original extension
+    $imageName = uniqid() . '-' . $title . '.jpg'; // Create a unique image name
     $imagePath = $uploadDir . $imageName;
 
     // Create upload directory if it doesn't exist

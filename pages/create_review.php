@@ -7,7 +7,8 @@ error_reporting(E_ALL);
 require_once '../includes/config.php';
 session_start();
 
-function sendJsonResponse($success, $message, $statusCode = 200) {
+function sendJsonResponse($success, $message, $statusCode = 200)
+{
     $response = array(
         'success' => $success,
         'message' => $message
@@ -19,8 +20,10 @@ function sendJsonResponse($success, $message, $statusCode = 200) {
     exit();
 }
 
+
 // Function to send notifications to friends
-function notifyFriends($pdo, $userId, $reviewId, $bookTitle) {
+function notifyFriends($pdo, $userId, $reviewId, $bookTitle)
+{
     $friendsQuery = "SELECT FriendID FROM Friends WHERE UserID = ?";
     $friendsStmt = $pdo->prepare($friendsQuery);
     $friendsStmt->execute([$userId]);
@@ -44,48 +47,40 @@ try {
     }
 
     $userId = $_SESSION['user_id'];
-    $reviewText = trim($_POST['review_text'] ?? '');
-    $bookTitle = trim($_POST['book_title'] ?? '');
-    $author = trim($_POST['book_author'] ?? '');
-    $isbn = trim($_POST['book_isbn'] ?? '');
-    $publicationYear = trim($_POST['book_year'] ?? '');
-    $genre = trim($_POST['book_genre'] ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $image = null;
 
-    if (empty($reviewText) || empty($bookTitle) || empty($author)) {
-        throw new Exception('Please fill in all required fields.');
+    // Decode JSON input
+    $inputData = json_decode(file_get_contents('php://input'), true);
+    if (!$inputData) {
+        throw new Exception('Invalid JSON input');
     }
 
-    // Handle uploaded image
-    if (isset($_FILES['book_image_upload']) && $_FILES['book_image_upload']['error'] === UPLOAD_ERR_OK) {
-        $imageTmpPath = $_FILES['book_image_upload']['tmp_name'];
-        $imageName = basename($_FILES['book_image_upload']['name']);
-        $uploadDir = '../uploads/reviews/';
-        $imagePath = $uploadDir . uniqid() . '-' . $imageName;
+    // Log the received input data
+    error_log("Received input data: " . print_r($inputData, true));
 
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
+    $reviewText = trim($inputData['review_text'] ?? '');
+    $bookTitle = trim($inputData['book_title'] ?? '');
+    $author = trim($inputData['book_author'] ?? '');
+    $isbn = trim($inputData['book_isbn'] ?? '');
+    $publicationYear = trim($inputData['book_year'] ?? '');
+    $genre = trim($inputData['book_genre'] ?? '');
+    $image = trim($inputData['downloaded_image'] ?? '');
 
-        if (!move_uploaded_file($imageTmpPath, $imagePath)) {
-            throw new Exception('There was an error uploading the image.');
-        }
+    // Log the parsed values
+    error_log("Parsed values: reviewText: '$reviewText', bookTitle: '$bookTitle', author: '$author'");
 
-        $image = $imagePath;
+    if (empty($reviewText)) {
+        throw new Exception('Please enter your review text.');
     }
 
-    // Check for the downloaded image path
-    if (empty($image) && !empty(trim($_POST['downloaded_image'] ?? ''))) {
-        $image = trim($_POST['downloaded_image']);
+    if (empty($bookTitle) || empty($author)) {
+        throw new Exception('Please ensure book title and author are provided.');
     }
 
-    if (!empty($image) && !file_exists($image)) {
-        throw new Exception('The image file does not exist.');
-    }
+
 
     $pdo->beginTransaction();
 
+    // Check if the book already exists in the database
     $bookExistsQuery = 'SELECT BookID FROM Books WHERE ISBN = :isbn LIMIT 1';
     $checkStmt = $pdo->prepare($bookExistsQuery);
     $checkStmt->bindParam(':isbn', $isbn, PDO::PARAM_STR);
@@ -93,15 +88,17 @@ try {
     $bookId = $checkStmt->fetchColumn();
 
     if (!$bookId) {
-        $insertBookStmt = $pdo->prepare('INSERT INTO Books (Title, Author, ISBN, PublicationYear, Genre, Image, Description) VALUES (?, ?, ?, ?, ?, ?, ?)');
-        $insertBookStmt->execute([$bookTitle, $author, $isbn, $publicationYear, $genre, $image, $description]);
+        $insertBookStmt = $pdo->prepare('INSERT INTO Books (Title, Author, ISBN, PublicationYear, Genre, Image) VALUES (?, ?, ?, ?, ?, ?)');
+        $insertBookStmt->execute([$bookTitle, $author, $isbn, $publicationYear, $genre, $image]);
         $bookId = $pdo->lastInsertId();
     }
 
-    $stmt = $pdo->prepare('INSERT INTO Reviews (UserID, BookID, ReviewText, Title, Author, ISBN, PublicationYear, Genre, Description, CreatedAt, Image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)');
-    $stmt->execute([$userId, $bookId, $reviewText, $bookTitle, $author, $isbn, $publicationYear, $genre, $description, $image]);
+    // Insert the review into the Reviews table
+    $stmt = $pdo->prepare('INSERT INTO Reviews (UserID, BookID, ReviewText, Title, Author, ISBN, PublicationYear, Genre, CreatedAt, Image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)');
+    $stmt->execute([$userId, $bookId, $reviewText, $bookTitle, $author, $isbn, $publicationYear, $genre, $image]);
     $reviewId = $pdo->lastInsertId();
 
+    // Notify friends about the new review
     notifyFriends($pdo, $userId, $reviewId, $bookTitle);
 
     $pdo->commit();
@@ -111,6 +108,6 @@ try {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
+    error_log("Error in create_review.php: " . $e->getMessage());
     sendJsonResponse(false, 'Error: ' . $e->getMessage(), 500);
 }
-?>

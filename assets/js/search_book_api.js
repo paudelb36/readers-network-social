@@ -1,4 +1,4 @@
-// search_book_api.js 
+// search_book_api.js
 const API_KEY = "AIzaSyAjH7g5XK4YYA5t2GH1rVcd2-PKzGsgp0c",
   searchBookButton = document.getElementById("searchBookButton"),
   bookSearchInput = document.getElementById("bookSearch"),
@@ -85,19 +85,12 @@ function populateForm(book) {
 }
 
 async function submitReview() {
-  const bookImage = bookCoverImage.src,
-    bookTitle = document.getElementById("book_title").value,
-    uploadedImage = bookImageUpload.files[0];
-
-  // Validation: Check if image is provided
-  if (!uploadedImage && bookImage === "default-image-url.png") {
-    return alert(
-      "Please upload an image or select one from the search results."
-    );
-  }
-
   try {
-    let imagePath;
+    const bookImage = bookCoverImage.src,
+      bookTitle = document.getElementById("book_title"),
+      uploadedImage = bookImageUpload.files[0];
+
+    let imagePath = "";
 
     // If user has uploaded an image manually
     if (uploadedImage) {
@@ -114,7 +107,7 @@ async function submitReview() {
       } else {
         return alert(uploadResult.message || "Failed to upload the image.");
       }
-    } else {
+    } else if (bookImage && bookImage !== "default-image-url.png") {
       // Use the image URL from Google Books
       const response = await fetch("download_image.php", {
         method: "POST",
@@ -123,7 +116,7 @@ async function submitReview() {
         },
         body: JSON.stringify({
           imageUrl: bookImage,
-          title: bookTitle,
+          title: bookTitle ? bookTitle.value : "",
         }),
       });
       const result = await response.json();
@@ -134,27 +127,69 @@ async function submitReview() {
       }
     }
 
+    // Function to safely get element value
+    const getElementValue = (id) => {
+      const element = document.getElementById(id);
+      if (element) {
+        return element.value.trim();
+      } else {
+        console.error(`Element with id '${id}' not found`);
+        return "";
+      }
+    };
+
     // Now submit the review with the image path
-    const formData = new FormData(reviewForm);
-    formData.append("downloaded_image", imagePath);
+    const reviewData = {
+      review_text: getElementValue("review_text"), // Ensure this gets the textarea value
+      book_title: getElementValue("book_title"),
+      book_author: getElementValue("book_author"),
+      book_isbn: getElementValue("book_isbn"),
+      book_year: getElementValue("book_year"),
+      book_genre: getElementValue("book_genre"),
+      downloaded_image: imagePath,
+    };
+
+    console.log("Review data to be submitted:", reviewData);
+
+    // Check if review text is filled
+    if (!reviewData.review_text) {
+      console.error("Review text is empty");
+      return alert("Please enter your review text.");
+    }
+
+    // Check if book title and author are filled
+    if (!reviewData.book_title || !reviewData.book_author) {
+      console.error("Book title or author is missing");
+      return alert("Please ensure book title and author are provided.");
+    }
+
     const submitResponse = await fetch("create_review.php", {
       method: "POST",
-      body: formData,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(reviewData),
     });
-    if (submitResponse.ok) {
-      // Optionally, notify friends here
-      // Notify friends logic goes here
-      window.location.href = "index.php";
+
+    console.log("Response status:", submitResponse.status);
+    const result = await submitResponse.json();
+    console.log("Server response:", result);
+
+    if (result.success) {
+      window.location.href = "index.php"; // Redirect on success
     } else {
-      alert("Failed to submit the review. Please try again.");
+      console.error("Server reported an error:", result.message);
+      alert(result.message || "Failed to submit the review. Please try again.");
     }
   } catch (error) {
-    alert(error.message);
+    console.error("Error in submitReview function:", error);
+    alert(
+      "An error occurred while submitting the review. Please check the console for more details."
+    );
   }
 }
 
 reviewForm.addEventListener("submit", function (e) {
-  e.preventDefault();
-  submitReview();
+  e.preventDefault(); // Prevent default form submission
+  submitReview(); // Call your custom submit function
 });
-

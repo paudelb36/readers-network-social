@@ -95,7 +95,7 @@ if ($loggedIn) {
                             <input type="text" id="book_genre" name="book_genre" placeholder="Genre" class="w-full p-2 border border-gray-300 rounded-lg" required>
                         </div>
                         <div class="col-span-2">
-                            <textarea name="review_text" rows="3" placeholder="Write your review..." class="w-full p-2 border border-gray-300 rounded-lg" required></textarea>
+                        <textarea id="review_text" name="review_text" rows="3" placeholder="Write your review..." class="w-full p-2 border border-gray-300 rounded-lg" required></textarea>
                         </div>
                         <div class="col-span-2 flex items-center space-x-4">
                             <input type="file" name="book_image_upload" id="book_image_upload" class="w-full border border-gray-300 rounded-lg py-2 px-3">
@@ -149,7 +149,6 @@ if ($loggedIn) {
             document.getElementById('searchResults').classList.add('hidden');
         }
     </script>
-    <script src="../assets/js/main.js"></script>
 </body>
 
 </html>
