@@ -71,7 +71,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trending Books</title>
+    <title>Find Books</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer>
         // JavaScript for modals and dropdowns

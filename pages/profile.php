@@ -209,8 +209,8 @@ include '../includes/header.php';
             <!-- Right Section: Bookshelves (Column 3) -->
             <div class="space-y-6 lg:col-span-1">
                 <div class="bg-white p-4 rounded-lg shadow-lg">
-                    <h2 class="text-xl font-semibold mb-4">Bookshelves
-                        <a href="bookshelf.php?user_id=<?php echo $userId; ?>" class="text-sm text-blue-600">(Edit)</a>
+                    <h2 class="font-semibold mb-4">
+                        <a href="bookshelf.php?user_id=<?php echo $userId; ?>" class="text-2xl text-black-600">Bookshelves</a>
                     </h2>
                     <ul>
                         <li>
