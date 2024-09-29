@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 28, 2024 at 06:41 AM
+-- Generation Time: Sep 29, 2024 at 03:42 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -118,7 +118,8 @@ INSERT INTO `comments` (`CommentID`, `UserID`, `Content`, `CreatedAt`, `ReviewID
 (18, 7, 'fd', '2024-09-24 19:12:48', 18, NULL),
 (19, 7, 'great', '2024-09-24 19:16:01', 18, NULL),
 (20, 10, 'ds', '2024-09-24 19:35:08', 18, NULL),
-(21, 6, 'nice', '2024-09-25 10:37:22', 19, NULL);
+(21, 6, 'nice', '2024-09-25 10:37:22', 19, NULL),
+(23, 10, 'great book', '2024-09-28 16:38:51', 21, NULL);
 
 -- --------------------------------------------------------
 
@@ -174,12 +175,10 @@ CREATE TABLE `friends` (
 --
 
 INSERT INTO `friends` (`UserID`, `FriendID`) VALUES
-(3, 5),
 (3, 6),
 (3, 7),
 (3, 9),
 (3, 10),
-(5, 3),
 (5, 6),
 (5, 7),
 (6, 3),
@@ -222,8 +221,24 @@ INSERT INTO `likes` (`LikeID`, `UserID`, `CreatedAt`, `ReviewID`) VALUES
 (128, 7, '2024-09-25 07:39:18', 5),
 (129, 7, '2024-09-25 07:39:20', 6),
 (131, 10, '2024-09-25 07:40:18', 8),
-(144, 10, '2024-09-26 15:57:13', 21),
-(145, 10, '2024-09-27 07:46:11', 18);
+(145, 10, '2024-09-27 07:46:11', 18),
+(159, 10, '2024-09-28 22:01:58', 21),
+(160, 10, '2024-09-28 22:02:01', 19),
+(162, 10, '2024-09-28 22:02:06', 15),
+(163, 10, '2024-09-28 22:02:07', 17),
+(164, 10, '2024-09-28 22:02:09', 7),
+(165, 10, '2024-09-28 22:02:11', 6),
+(166, 10, '2024-09-28 22:02:14', 5),
+(167, 10, '2024-09-28 22:02:15', 4),
+(168, 10, '2024-09-28 22:24:32', 20),
+(171, 3, '2024-09-28 22:42:13', 20),
+(172, 3, '2024-09-28 22:42:14', 19),
+(173, 3, '2024-09-28 22:42:15', 18),
+(174, 3, '2024-09-28 22:42:19', 7),
+(175, 3, '2024-09-28 22:42:20', 6),
+(176, 3, '2024-09-28 22:42:21', 5),
+(177, 3, '2024-09-28 22:42:22', 4),
+(178, 3, '2024-09-29 02:35:16', 21);
 
 -- --------------------------------------------------------
 
@@ -252,8 +267,13 @@ INSERT INTO `notifications` (`NotificationID`, `Content`, `IsRead`, `CreatedAt`,
 (10, 'Your friend has posted a new review for the book \'The Boy in the Striped Pajamas (Deluxe Illustrated Edition)\'.', 0, '2024-09-26 11:24:43', 3, 'reviews', 6),
 (11, 'Your friend has posted a new review for the book \'The Boy in the Striped Pajamas (Deluxe Illustrated Edition)\'.', 0, '2024-09-26 11:24:43', 3, 'reviews', 7),
 (12, 'Your friend has posted a new review for the book \'The Boy in the Striped Pajamas (Deluxe Illustrated Edition)\'.', 0, '2024-09-26 11:24:43', 3, 'reviews', 9),
-(13, 'Your friend has posted a new review for the book \'The Boy in the Striped Pajamas (Deluxe Illustrated Edition)\'.', 1, '2024-09-26 11:24:43', 3, 'reviews', 10),
-(14, 'Your friend has posted a new review for the book \'20th century boys\'.', 0, '2024-09-27 19:39:31', 10, '', 3);
+(15, 'great book', 1, '2024-09-28 22:23:51', 10, 'comment', 3),
+(16, NULL, 1, '2024-09-28 22:24:32', 10, 'reaction', 3),
+(17, NULL, 0, '2024-09-28 22:42:14', 3, 'reaction', 6),
+(18, NULL, 0, '2024-09-28 22:42:15', 3, 'reaction', 7),
+(19, NULL, 0, '2024-09-28 22:42:19', 3, 'reaction', 6),
+(20, NULL, 0, '2024-09-28 22:42:20', 3, 'reaction', 9),
+(21, NULL, 0, '2024-09-28 22:42:21', 3, 'reaction', 7);
 
 -- --------------------------------------------------------
 
@@ -323,6 +343,15 @@ CREATE TABLE `readinglist` (
   `DateAdded` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+--
+-- Dumping data for table `readinglist`
+--
+
+INSERT INTO `readinglist` (`ReadingListID`, `UserID`, `BookID`, `Status`, `DateAdded`) VALUES
+(1, 10, 18, 'Read', '2024-09-28 13:40:10'),
+(5, 10, 17, 'Currently Reading', '2024-09-28 15:03:56'),
+(6, 10, 12, 'Want to Read', '2024-09-28 21:12:42');
+
 -- --------------------------------------------------------
 
 --
@@ -356,7 +385,8 @@ INSERT INTO `reports` (`ReportID`, `ReporterID`, `ReportedUserID`, `ReportedPost
 (23, 9, 6, 7, NULL, 'Inappropriate Content', 'Pending', '2024-09-26 07:13:51', NULL),
 (27, 9, 6, 19, NULL, 'Spam', 'Pending', '2024-09-26 07:22:05', NULL),
 (29, 9, 7, 18, NULL, 'Spam', 'Pending', '2024-09-26 07:23:28', NULL),
-(30, 9, 5, 8, NULL, 'Spam', 'Pending', '2024-09-26 07:27:06', NULL);
+(30, 9, 5, 8, NULL, 'Spam', 'Pending', '2024-09-26 07:27:06', NULL),
+(31, 3, 6, 19, NULL, 'Spam', 'Pending', '2024-09-29 01:37:21', NULL);
 
 -- --------------------------------------------------------
 
@@ -395,8 +425,7 @@ INSERT INTO `reviews` (`ReviewID`, `UserID`, `BookID`, `ReviewText`, `CreatedAt`
 (18, 7, 13, 'Great manga', '2024-09-25 00:28:23', 'One piece', 'Eiichiro Oda', '8822603605', 2016, 'Comics & Graphic Novels', '', '../uploads/downloads/66f3084a08f95-One_piece.jpg', 'visible'),
 (19, 6, 14, 'Nice', '2024-09-25 11:31:54', 'Harry Potter and the Chamber of Secrets', 'J. K. Rowling', '1551922444', 2012, 'Juvenile Fiction', NULL, '../uploads/reviews/66f3a3cee0a3a-1680341041-430x430.png', 'visible'),
 (20, 3, 15, 'great book', '2024-09-26 10:59:51', 'Harry Potter and the Order of the Phoenix', 'J. K. Rowling', '9781408855935', 2014, 'Fiction', '', '../uploads/downloads/66f4edcae8448-Harry_Potter_and_the_Order_of_the_Phoenix.jpg', 'visible'),
-(21, 3, 16, 'amazing story', '2024-09-26 11:16:29', 'Harry Potter and the Prisoner of Azkaban', 'J. K. Rowling', '9781408855676', 2014, 'Juvenile Fiction', '', '../uploads/downloads/66f4f1b1137a8-Harry_Potter_and_the_Prisoner_of_Azkaban.jpg', 'visible'),
-(22, 3, 17, 'Amazing books', '2024-09-26 11:24:43', 'The Boy in the Striped Pajamas (Deluxe Illustrated Edition)', 'John Boyne', '9781524766535', 2017, 'Young Adult Fiction', '', '../uploads/downloads/66f4f39eef666-The_Boy_in_the_Striped_Pajamas__Deluxe_Illustrated_Edition_.jpg', 'visible');
+(21, 3, 16, 'nice', '2024-09-26 11:16:29', 'Harry Potter and the Prisoner of Azkaban', 'J. K. Rowling', '9781408855676', 2014, 'Juvenile Fiction', '', '../uploads/downloads/66f4f1b1137a8-Harry_Potter_and_the_Prisoner_of_Azkaban.jpg', 'visible');
 
 -- --------------------------------------------------------
 
@@ -461,8 +490,8 @@ ALTER TABLE `books`
 ALTER TABLE `comments`
   ADD PRIMARY KEY (`CommentID`),
   ADD KEY `UserID` (`UserID`),
-  ADD KEY `comments_ibfk_2` (`ReviewID`),
-  ADD KEY `fk_ParentComment` (`ParentCommentID`);
+  ADD KEY `fk_ParentComment` (`ParentCommentID`),
+  ADD KEY `comments_ibfk_2` (`ReviewID`);
 
 --
 -- Indexes for table `commentvotes`
@@ -571,7 +600,7 @@ ALTER TABLE `books`
 -- AUTO_INCREMENT for table `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `CommentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `CommentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `commentvotes`
@@ -583,13 +612,13 @@ ALTER TABLE `commentvotes`
 -- AUTO_INCREMENT for table `likes`
 --
 ALTER TABLE `likes`
-  MODIFY `LikeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=156;
+  MODIFY `LikeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=179;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `NotificationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `NotificationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `opinions`
@@ -607,13 +636,13 @@ ALTER TABLE `ratings`
 -- AUTO_INCREMENT for table `readinglist`
 --
 ALTER TABLE `readinglist`
-  MODIFY `ReadingListID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ReadingListID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `reports`
 --
 ALTER TABLE `reports`
-  MODIFY `ReportID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `ReportID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `reviews`
@@ -635,7 +664,7 @@ ALTER TABLE `users`
 -- Constraints for table `comments`
 --
 ALTER TABLE `comments`
-  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`ReviewID`) REFERENCES `reviews` (`ReviewID`),
+  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`ReviewID`) REFERENCES `reviews` (`ReviewID`) ON DELETE CASCADE,
   ADD CONSTRAINT `comments_ibfk_3` FOREIGN KEY (`UserID`) REFERENCES `users` (`UserID`),
   ADD CONSTRAINT `fk_ParentComment` FOREIGN KEY (`ParentCommentID`) REFERENCES `comments` (`CommentID`);
 
@@ -664,7 +693,7 @@ ALTER TABLE `friends`
 -- Constraints for table `likes`
 --
 ALTER TABLE `likes`
-  ADD CONSTRAINT `likes_ibfk_2` FOREIGN KEY (`ReviewID`) REFERENCES `reviews` (`ReviewID`),
+  ADD CONSTRAINT `likes_ibfk_2` FOREIGN KEY (`ReviewID`) REFERENCES `reviews` (`ReviewID`) ON DELETE CASCADE,
   ADD CONSTRAINT `likes_ibfk_3` FOREIGN KEY (`UserID`) REFERENCES `users` (`UserID`);
 
 --
